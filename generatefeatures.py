@@ -4,11 +4,11 @@ import os
 import rebound
 from collections import OrderedDict
 
-path = '/scratch/dtamayo/'
-icpath = path +'random/initial_conditions/runs/ic'
-fcpath = path +'random/final_conditions/runs/fc'
+#path = '/scratch/dtamayo/'
+#icpath = path +'random/initial_conditions/runs/ic'
+#fcpath = path +'random/final_conditions/runs/fc'
 
-df = pd.read_csv(path+'random/random.csv', index_col=0)
+#df = pd.read_csv(path+'random/random.csv', index_col=0)
 
 maxorbs = 1e4
 Nout = 100
@@ -19,7 +19,21 @@ def collision(reb_sim, col):
     reb_sim.contents._status = 5 # causes simulation to stop running and have flag for whether sim stopped due to collision
     return 0
 
-def generate_features(sim):
+#can pass a rebound simulation or pandas series, and outputs a rebound simulation
+def make_sim(d):
+    if type(d) == rebound.simulation.Simulation:    #this is a rebound simulation
+        return d
+    elif (type(d) == pd.core.series.Series) or (type(d) == pandas.core.series.Series):  #pandas series
+        sim = rebound.Simulation()
+        sim.add(m=1)
+        
+        earth = 0.000003003
+        for i in [1,2,3]:
+            sim.add(m=d["m%d"%i],P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
+        return sim
+
+def generate_features(d):
+    sim = make_sim(d)
     ps = sim.particles
     
     sim2 = rebound.Simulation()
