@@ -7,7 +7,6 @@ from collections import OrderedDict
 #path = '/scratch/dtamayo/'
 #icpath = path +'random/initial_conditions/runs/ic'
 #fcpath = path +'random/final_conditions/runs/fc'
-
 #df = pd.read_csv(path+'random/random.csv', index_col=0)
 
 maxorbs = 1e4
@@ -20,26 +19,28 @@ def collision(reb_sim, col):
     return 0
 
 #can pass a rebound simulation or pandas series, and outputs a rebound simulation
-def make_sim(d):
+def make_sim(d, Ms, dt):
     if type(d) == rebound.simulation.Simulation:    #this is a rebound simulation
         return d
-    elif (type(d) == pd.core.series.Series) or (type(d) == pandas.core.series.Series):  #pandas series
+    else: #this is a pandas dataframe
         sim = rebound.Simulation()
-        sim.add(m=1)
+        sim.integrator = 'whfast'
+        sim.dt = dt
+        sim.add(m=Ms)
         
         earth = 0.000003003
-        for i in [1,2,3]:
-            sim.add(m=d["m%d"%i],P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
+        sim.add(m=d.m1*earth/Ms,P=d.P1,h=d.h1,k=d.k1,l=-d.T1*2*np.pi/d.P1)
+        sim.add(m=d.m2*earth/Ms,P=d.P2,h=d.h2,k=d.k2,l=-d.T2*2*np.pi/d.P2)
+        sim.add(m=d.m3*earth/Ms,P=d.P3,h=d.h3,k=d.k3,l=-d.T3*2*np.pi/d.P3)
+        #sim.add(m=d["m%d"%i]*earth/Ms,P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
+        #sim.add(m=d["m%d"%i]*earth/Ms,P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
         return sim
 
-def generate_features(d):
-    sim = make_sim(d)
+def generate_features(d, Ms=1):
+    dt = d.P1/20
+    sim = make_sim(d, Ms, dt)
+    sim2 = make_sim(d, Ms, dt)
     ps = sim.particles
-    
-    sim2 = rebound.Simulation()
-    sim2.G = sim.G
-    for p in ps:
-        sim2.add(p)
 
     P0 = ps[1].P
     tmax = maxorbs * P0 # number of inner planet orbital periods to integrate
@@ -63,7 +64,7 @@ def generate_features(d):
     
     eHill = [0, Rhill12/ps[1].a, max(Rhill12, Rhill23)/ps[2].a, Rhill23/ps[3].a]
     daOvera = [0, (ps[2].a-ps[1].a)/ps[1].a, min(ps[3].a-ps[2].a, ps[2].a-ps[1].a)/ps[2].a, (ps[3].a-ps[2].a)/ps[3].a]
-    
+
     for i, t in enumerate(times):
         for j in [1,2,3]:
             a[j,i] = ps[j].a
@@ -72,7 +73,7 @@ def generate_features(d):
         e2shadow[i] = sim2.particles[2].e
         sim.integrate(t)
         sim2.integrate(t)
-    
+
     features = OrderedDict()
     features['t_final_short'] = sim.t/P0
     Ef = sim.calculate_energy()
