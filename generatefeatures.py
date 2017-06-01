@@ -4,50 +4,56 @@ import os
 import rebound
 from collections import OrderedDict
 
-#path = '/scratch/dtamayo/'
-#icpath = path +'random/initial_conditions/runs/ic'
-#fcpath = path +'random/final_conditions/runs/fc'
-#df = pd.read_csv(path+'random/random.csv', index_col=0)
-
-maxorbs = 1e4
-Nout = 100
-window = 10
-Navg = 10
-
 def collision(reb_sim, col):
     reb_sim.contents._status = 5 # causes simulation to stop running and have flag for whether sim stopped due to collision
     return 0
 
-#can pass a rebound simulation or pandas series, and outputs a rebound simulation
-def make_sim(d, Ms, dt):
-    if type(d) == rebound.simulation.Simulation:    #this is a rebound simulation
-        return d
-    else: #this is a pandas dataframe
-        sim = rebound.Simulation()
-        sim.integrator = 'whfast'
-        sim.dt = dt
-        sim.add(m=Ms)
-        
-        earth = 0.000003003
-        sim.add(m=d.m1*earth/Ms,P=d.P1,h=d.h1,k=d.k1,l=-d.T1*2*np.pi/d.P1)
-        sim.add(m=d.m2*earth/Ms,P=d.P2,h=d.h2,k=d.k2,l=-d.T2*2*np.pi/d.P2)
-        sim.add(m=d.m3*earth/Ms,P=d.P3,h=d.h3,k=d.k3,l=-d.T3*2*np.pi/d.P3)
-        #sim.add(m=d["m%d"%i]*earth/Ms,P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
-        #sim.add(m=d["m%d"%i]*earth/Ms,P=d["P%d"%i],h=d["h%d"%i],k=d["k%d"%i],l=-d["T%d"%i]*2*np.pi/d["P%d"%i])
-        return sim
+#Certain parameters (e.g. inclination) might be 0, and so certain features might return NaN
+def check_nan(x):
+    if np.isnan(x):
+        return 0
+    else:
+        return x
 
-def generate_features(d, Ms=1):
-    dt = d.P1/20
-    sim = make_sim(d, Ms, dt)
-    sim2 = make_sim(d, Ms, dt)
+def get_M(e, w, T, P, epoch):
+    f = np.pi/2 - w
+    E = 2*np.arctan(np.tan(f/2) * np.sqrt((1-e)/(1+e))) #E and f always in same half of ellipse
+    M = E - e*np.sin(E)
+    return M + (epoch - T)*2*np.pi/P
+
+def make_sim(d, Ms, dt, epoch):
+    sim = rebound.Simulation()
+    sim.integrator = 'whfast'
+    sim.dt = dt
+    sim.G = 1
+    sim.add(m=Ms)
+    
+    earth = 0.000003003
+    for i in [1,2,3]:
+        e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                              # sqrt(h^2 + k^2)
+        w = np.arctan2(d["h%d"%i],d["k%d"%i])                                   # arctan2(h/k)
+        m, P, T = d["m%d"%i]*earth/Ms, d["P%d"%i], d["T%d"%i]                   # Ms, days, BJD-2,454,900
+        sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch))    # G=1 units!
+    return sim
+
+def generate_features(d, epoch, Ms=1):
+    # hyperparameters
+    dt = d["P1"]/20.                    # timestep for short integration
+    maxorbs = 1e4
+    Nout = 100
+    window = 10
+    Navg = 10
+
+    # make sims
+    sim = make_sim(d, Ms, dt, epoch)    # primary simulation
+    sim2 = make_sim(d, Ms, dt, epoch)   # shadow simulation
     ps = sim.particles
 
     P0 = ps[1].P
-    tmax = maxorbs * P0 # number of inner planet orbital periods to integrate
-    
+    tmax = maxorbs * P0                 # number of inner planet orbital periods to integrate
     sim.collision_resolve = collision
     sim2.collision_resolve = collision
-
+    
     kicksize=1.e-11
     sim2.particles[2].x += kicksize
     
@@ -65,6 +71,7 @@ def generate_features(d, Ms=1):
     eHill = [0, Rhill12/ps[1].a, max(Rhill12, Rhill23)/ps[2].a, Rhill23/ps[3].a]
     daOvera = [0, (ps[2].a-ps[1].a)/ps[1].a, min(ps[3].a-ps[2].a, ps[2].a-ps[1].a)/ps[2].a, (ps[3].a-ps[2].a)/ps[3].a]
 
+    # simulate primary/shadow systems 
     for i, t in enumerate(times):
         for j in [1,2,3]:
             a[j,i] = ps[j].a
@@ -78,7 +85,8 @@ def generate_features(d, Ms=1):
     features['t_final_short'] = sim.t/P0
     Ef = sim.calculate_energy()
     features['Rel_Eerr_short'] = abs((Ef-E0)/E0)
-    
+
+    # make features
     for j in [1,2,3]:
         for string, feature in [('a', a), ('e', e), ('inc', inc)]:
             mean = feature[j].mean()
@@ -87,37 +95,37 @@ def generate_features(d, Ms=1):
             features['std_'+string+str(j)] = std
             features['max_'+string+str(j)] = feature[j].max()
             features['min_'+string+str(j)] = feature[j].min()
-            features['norm_std_'+string+str(j)] = std/mean
-            features['norm_max_'+string+str(j)] = np.abs(feature[j] - mean).max()/mean
+            features['norm_std_'+string+str(j)] = check_nan(std/mean)
+            features['norm_max_'+string+str(j)] = check_nan(np.abs(feature[j] - mean).max()/mean)
             sample = feature[j][:window]
             samplemean = sample.mean()
-            features['norm_std_window'+str(window)+'_'+string+str(j)] = sample.std()/samplemean
-            features['norm_max_window'+str(window)+'_'+string+str(j)] = np.abs(sample - samplemean).max()/samplemean
+            features['norm_std_window'+str(window)+'_'+string+str(j)] = check_nan(sample.std()/samplemean)
+            features['norm_max_window'+str(window)+'_'+string+str(j)] = check_nan(np.abs(sample - samplemean).max()/samplemean)
 
         for string, feature in [('eH', e), ('iH', inc)]:
             mean = feature[j].mean()
             std = feature[j].std()
 
-            features['avg_'+string+str(j)] = mean/eHill[j]
-            features['std_'+string+str(j)] = std/eHill[j]
-            features['max_'+string+str(j)] = feature[j].max()/eHill[j]
-            features['min_'+string+str(j)] = feature[j].min()/eHill[j]
+            features['avg_'+string+str(j)] = check_nan(mean/eHill[j])
+            features['std_'+string+str(j)] = check_nan(std/eHill[j])
+            features['max_'+string+str(j)] = check_nan(feature[j].max()/eHill[j])
+            features['min_'+string+str(j)] = check_nan(feature[j].min()/eHill[j])
 
         string, feature = ('ecross', e)
-        features['avg_'+string+str(j)] = mean/daOvera[j]
-        features['std_'+string+str(j)] = std/daOvera[j]
-        features['max_'+string+str(j)] = feature[j].max()/daOvera[j]
-        features['min_'+string+str(j)] = feature[j].min()/daOvera[j]
+        features['avg_'+string+str(j)] = check_nan(mean/daOvera[j])
+        features['std_'+string+str(j)] = check_nan(std/daOvera[j])
+        features['max_'+string+str(j)] = check_nan(feature[j].max()/daOvera[j])
+        features['min_'+string+str(j)] = check_nan(feature[j].min()/daOvera[j])
 
         xx = range(a[j].shape[0])
         yy = a[j]/a[j].mean()/features["t_final_short"]
         par = np.polyfit(xx, yy, 1, full=True)
         features['norm_a'+str(j)+'_slope'] = par[0][0]
 
-    N = min((e[2] > 0).sum(), (e2shadow > 0).sum()) # Number of nonzero entries in each array, in case either go unstable before end of run
-    Nfit = N//Navg # N of binned points
-    Ntrim = Nfit*Navg # trim array to number that can fit in bins of size Navg
-    e2avg = np.average(e[2][:Ntrim].reshape(Nfit, Navg), axis=1) # reshape into Nfit lists of Navg consecutive values and average
+    N = min((e[2] > 0).sum(), (e2shadow > 0).sum())                 # Number of nonzero entries in each array, incase they go unstable before sim ends
+    Nfit = N//Navg                                                  # N of binned points
+    Ntrim = Nfit*Navg                                               # trim array to number that can fit in bins of size Navg
+    e2avg = np.average(e[2][:Ntrim].reshape(Nfit, Navg), axis=1)    # reshape into Nfit lists of Navg consecutive values and average
     e2shadowavg = np.average(e2shadow[:Ntrim].reshape(Nfit, Navg), axis=1)
     timesavg = np.average(times[:Ntrim].reshape(Nfit, Navg), axis=1)
     e2diff = np.abs(e2avg - e2shadowavg)
@@ -126,6 +134,8 @@ def generate_features(d, Ms=1):
     
     return pd.Series(features, index=list(features.keys()))
 
+#functions below not relevant?#
+###############################
 def system(row):
     sim = rebound.Simulation.from_file(icpath+row['runstring'])
     E0 = sim.calculate_energy()
