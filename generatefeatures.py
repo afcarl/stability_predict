@@ -47,6 +47,8 @@ def generate_features(d, epoch, Ms=1):
     # make sims
     sim = make_sim(d, Ms, dt, epoch)    # primary simulation
     sim2 = make_sim(d, Ms, dt, epoch)   # shadow simulation
+    sim.move_to_com()
+    sim2.move_to_com()
     ps = sim.particles
 
     P0 = ps[1].P
