@@ -37,13 +37,22 @@ sim.ri_whfast.safe_mode = 0
 sim.collision = 'direct'
 sim.collision_resolve = collision
 
-earth = 0.000003003
+#add sun
 sim.add(m=Ms)
+
+#minimum hill radius
+earth = 0.000003003
+a1,a2 = ((d["P1"]/365)**2 * Ms)**(1./3.), ((d["P2"]/365)**2 * Ms)**(1./3.)
+hill12 = a1*((d["m1"]+d["m2"])*earth/Ms/3.)**(1./3.)
+hill23 = a2*((d["m2"]+d["m3"])*earth/Ms/3.)**(1./3.)
+minhill = min(hill12,hill23)
+
+#add planets
 for i in [1,2,3]:
-    e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                              #sqrt(h^2 + k^2)
-    w = np.arctan2(d["h%d"%i],d["k%d"%i])                                   #arctan2(h/k)
-    m, P, T = d["m%d"%i]*earth/Ms, d["P%d"%i], d["T%d"%i]                   #Ms, days, BJD-2,454,900
-    sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch))    #G=1 units!
+    e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                                      #sqrt(h^2 + k^2)
+    w = np.arctan2(d["h%d"%i],d["k%d"%i])                                           #arctan2(h/k)
+    m, P, T = d["m%d"%i]*earth/Ms, d["P%d"%i], d["T%d"%i]                           #Ms, days, BJD-2,454,900
+    sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch), r=minhill) #G=1 units!
 sim.move_to_com()
 
 #shadow system
@@ -71,5 +80,5 @@ Eerr = abs((Ef-E0)/E0)
 
 #need to store the result somewhere
 f = open('systems/%s_Nbodyresults.csv'%system, "a")
-f.write('%s, %d, %e, %e, %e, %e \n'%(name,shadow,maxorbs,sim.t,Eerr,time.time()-t0))
+f.write('%s, %d, %d, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,sim.t,Eerr,time.time()-t0))
 
