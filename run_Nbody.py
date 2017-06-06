@@ -62,8 +62,9 @@ if shadow == 1:
 
 #timestep
 dt = 2.*math.sqrt(3)/100.
-sim.dt = dt*sim.particles[1].P
-tmax = maxorbs*sim.particles[1].P
+P1 = sim.particles[1].P
+sim.dt = dt*P1
+tmax = maxorbs*P1
 
 #save simulation archive
 sim.save('output/%s_init.bin'%name)                                         #save beginning of sim.
@@ -80,5 +81,5 @@ Eerr = abs((Ef-E0)/E0)
 
 #need to store the result somewhere
 f = open('systems/%s_Nbodyresults.csv'%system, "a")
-f.write('%s, %d, %d, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,sim.t,Eerr,time.time()-t0))
+f.write('%s, %d, %d, %e, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0))
 
