@@ -51,7 +51,7 @@ minhill = min(hill12,hill23)
 for i in [1,2,3]:
     e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                                      #sqrt(h^2 + k^2)
     w = np.arctan2(d["h%d"%i],d["k%d"%i])                                           #arctan2(h/k)
-    m, P, T = d["m%d"%i]*earth/Ms, d["P%d"%i], d["T%d"%i]                           #Ms, days, BJD-2,454,900
+    m, P, T = d["m%d"%i]*earth*Ms, d["P%d"%i], d["T%d"%i]                           #Ms, days, BJD-2,454,900
     sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch), r=minhill) #G=1 units!
 sim.move_to_com()
 
