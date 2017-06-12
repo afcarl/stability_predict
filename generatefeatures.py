@@ -21,40 +21,45 @@ def get_M(e, w, T, P, epoch):
     M = E - e*np.sin(E)
     return M + (epoch - T)*2*np.pi/P
 
-def make_sim(d, Ms, dt, epoch):
+def make_sim(d, Ms, epoch):
     sim = rebound.Simulation()
     sim.integrator = 'whfast'
-    sim.dt = dt
     sim.G = 1
     sim.add(m=Ms)
     
     earth = 0.000003003
     for i in [1,2,3]:
-        e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                              # sqrt(h^2 + k^2)
-        w = np.arctan2(d["h%d"%i],d["k%d"%i])                                   # arctan2(h/k)
-        m, P, T = d["m%d"%i]*earth/Ms, d["P%d"%i], d["T%d"%i]                   # Ms, days, BJD-2,454,900
-        sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch))    # G=1 units!
+        m, P = d["m%d"%i]*earth*Ms, d["P%d"%i]              # Ms, days
+        try:
+            e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
+            w = np.arctan2(d["h%d"%i],d["k%d"%i])           # arctan2(h/k)
+            M = get_M(e,w,d["T%d"%i],P,epoch)               # T = epoch = BJD-2,454,900
+        except:
+            e = d["e%d"%i]
+            w = d["w%d"%i]
+            M = d["MA%d"%i]                                 # Mean anomaly
+        sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=M)   # G=1 units!
+    sim.move_to_com()
     return sim
 
-def generate_features(d, epoch, Ms=1):
+def generate_features(d, Ms=1, epoch=780):
     # hyperparameters
-    dt = d["P1"]/20.                    # timestep for short integration
     maxorbs = 1e4
     Nout = 100
     window = 10
     Navg = 10
 
     # make sims
-    sim = make_sim(d, Ms, dt, epoch)    # primary simulation
-    sim2 = make_sim(d, Ms, dt, epoch)   # shadow simulation
-    sim.move_to_com()
-    sim2.move_to_com()
+    sim = make_sim(d, Ms, epoch)    # primary simulation
+    sim2 = make_sim(d, Ms, epoch)   # shadow simulation
     ps = sim.particles
 
     P0 = ps[1].P
     tmax = maxorbs * P0                 # number of inner planet orbital periods to integrate
     sim.collision_resolve = collision
     sim2.collision_resolve = collision
+    sim.dt = P0/20.
+    sim2.dt = P0/20.
     
     kicksize=1.e-11
     sim2.particles[2].x += kicksize

@@ -49,10 +49,16 @@ minhill = min(hill12,hill23)
 
 #add planets
 for i in [1,2,3]:
-    e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)                                      #sqrt(h^2 + k^2)
-    w = np.arctan2(d["h%d"%i],d["k%d"%i])                                           #arctan2(h/k)
-    m, P, T = d["m%d"%i]*earth*Ms, d["P%d"%i], d["T%d"%i]                           #Ms, days, BJD-2,454,900
-    sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=get_M(e,w,T,P,epoch), r=minhill) #G=1 units!
+    m, P = d["m%d"%i]*earth*Ms, d["P%d"%i]              #Ms, days, BJD-2,454,900
+    try:
+        e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
+        w = np.arctan2(d["h%d"%i],d["k%d"%i])           # arctan2(h/k)
+        M = get_M(e,w,d["T%d"%i],P,epoch)               # T = epoch = BJD-2,454,900
+    except:
+        e = d["e%d"%i]
+        w = d["w%d"%i]
+        M = d["MA%d"%i]
+    sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=M, r=minhill) #G=1 units!
 sim.move_to_com()
 
 #shadow system
@@ -63,7 +69,7 @@ if shadow == 1:
 #timestep
 dt = 2.*math.sqrt(3)/100.
 P1 = sim.particles[1].P
-sim.dt = dt*P1
+sim.dt = dt*P1              # ~3% orbital period
 tmax = maxorbs*P1
 
 #save simulation archive
