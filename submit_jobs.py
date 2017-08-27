@@ -19,4 +19,4 @@ for f in files:
     submit_job(f, job_name)     #submitting job for the first time
     Njobs_counter += 1
 
-print 'submitted %d jobs'%Njobs_counter
+print('submitted %d jobs'%Njobs_counter)

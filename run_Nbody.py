@@ -88,9 +88,9 @@ sim.initSimulationArchive('output/%s_SA.bin'%name, interval=tmax/1000.)     #sav
 #simulate
 E0 = sim.calculate_energy()
 t0 = time.time()
-print "starting simulation"
+print("starting simulation")
 sim.integrate(tmax)                                                         #will stop if collision occurs
-print "finished simulation"
+print("finished simulation")
 Ef = sim.calculate_energy()
 Eerr = abs((Ef-E0)/E0)
 
