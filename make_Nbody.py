@@ -15,27 +15,32 @@ Ms["KOI-1576"] = 0.907;
 epoch = 780
 
 ####################################################
-def generate_jobs(system,dir,n_sims,norbits,id_offset):
+def generate_jobs(system,dir,n_sims,norbits):
     orb_elements = ["m1","T1","P1","h1","k1","m2","T2","P2","h2","k2","m3","T3","P3","h3","k3"]
     
     N_columns = len(pd.read_csv("systems/data_files/%s.dat"%system,sep="\s+").columns)
+    Np = int(N_columns/5)
     if N_columns < 15:
-        print("**The number of planets in the system is %f, *not* generating jobs**"%N_columns/5.)
+        print("**The number of planets in system %s is %f, *not* generating jobs**"%(system,N_columns/5.))
         return 0
     elif N_columns > 15:
-        print("The number of planets in the system is %f, generating jobs"%N_columns/5.)
+        print("The number of planets in system %s is %f, generating jobs"%(system,N_columns/5.))
         orb_elements = []
-        for i in range(N_columns/5):
-            orb_elements.append(["m%d"%i,"T%d"%i,"P%d"%i,"h%d"%i,"k%d"%i])
-    Np = int(N_columns/5)
+        for i in range(1,Np+1):
+            orb_elements += list(("m%d"%i,"T%d"%i,"P%d"%i,"h%d"%i,"k%d"%i))
 
     datafull = pd.read_csv("systems/data_files/%s.dat"%system,names=orb_elements,sep="\s+")
 
     #get random samples from full posterior
     rN = np.random.randint(0,len(datafull),n_sims)
     data = datafull.iloc[rN].reset_index(drop=True)
-    data.index += id_offset
-    data.to_csv("systems/%s_data.csv"%system, mode="a", header=np.logical_not(os.path.isfile("systems/%s_data.csv"%system)))
+
+    #save data to csv
+    incl_header=True
+    if os.path.isfile("systems/%s_data.csv"%system) == True:
+        data.index += pd.read_csv("systems/%s_data.csv"%system).index[-1] + 1   #start current index number at previous entry number
+        incl_header=False
+    data.to_csv("systems/%s_data.csv"%system, mode="a", header=incl_header)
 
     #generate jobs
     for shadow in [0,1]:
@@ -57,14 +62,15 @@ def generate_jobs(system,dir,n_sims,norbits,id_offset):
 
 ####################################################
 if __name__ == '__main__':
-    systems = ["KOI-1576"]
+    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
+    #systems = ["KOI-0085"]
     
     dir = 'jobs/'           #output directory for jobs
-    n_sims = 5            #number of sims created (x2 for shadow systems)
+    n_sims = 1            #number of sims created (x2 for shadow systems!!)
     norbits = 1e9           #number of orbits of innermost planet
-    id_offset = 5           #id offset number so that you dont overwrite previous job names.
     
     for system in systems:
-        out = generate_jobs(system,dir,n_sims,norbits,id_offset)
+        out = generate_jobs(system,dir,n_sims,norbits)
+        print("Generated %d simulations for %s"%(n_sims*2,system))
 
 
