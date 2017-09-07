@@ -26,7 +26,7 @@ jobs_dir = 'jobs/jobs3/'                    #once jobs1 are finished, submit job
 #files = glob.glob('%s/*'%jobs_dir)
 files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs
 
-print files
+print(files)
 #Njobs_counter = 0
 #for f in files:
 #    job_name = f.split(jobs_dir)[1]
