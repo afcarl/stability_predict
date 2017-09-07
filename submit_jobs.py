@@ -12,11 +12,14 @@ def submit_job(f, job_name):
 
 def find_unsubmitted_jobs(jobs_dir):
     unsub_jobs = []
+    N_true = 0
     jobs = glob.glob('%s/*'%jobs_dir)
     for j in jobs:
         basename = os.path.basename(j)
         if os.path.isfile('output/%s_SA.bin'%basename) == False:
             unsub_jobs.append(j)
+        elif os.path.isfile('output/%s_SA.bin'%basename) == True:
+            N_true += 1
     return unsub_jobs
 
 ###############################
