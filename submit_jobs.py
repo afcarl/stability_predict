@@ -10,13 +10,27 @@ def submit_job(f, job_name):
     os.system('qsub %s'%job_name)
     os.system('mv %s %s'%(job_name,f))
 
-jobs_dir = 'jobs/'
+def find_unsubmitted_jobs(jobs_dir)
+    unsub_jobs = []
+    jobs = glob.glob('%s/*'%jobs_dir)
+    for j in jobs:
+        basename = os.path.basename(j)
+        if os.path.isfile('output/%s_SA.bin'%basename) == False:
+            unsub_jobs.append(j)
+    return unsub_jobs
 
-files = glob.glob('%s/*'%jobs_dir)
-Njobs_counter = 0
-for f in files:
-    job_name = f.split(jobs_dir)[1]
-    submit_job(f, job_name)     #submitting job for the first time
-    Njobs_counter += 1
+###############################
 
-print('submitted %d jobs'%Njobs_counter)
+jobs_dir = 'jobs/jobs3/'                    #once jobs1 are finished, submit jobs2/ and then jobs3/
+
+#files = glob.glob('%s/*'%jobs_dir)
+files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs
+
+print files
+#Njobs_counter = 0
+#for f in files:
+#    job_name = f.split(jobs_dir)[1]
+#    submit_job(f, job_name)     #submitting job for the first time
+#    Njobs_counter += 1
+#
+#print('submitted %d jobs'%Njobs_counter)

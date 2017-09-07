@@ -1,4 +1,5 @@
 #This is just a simple calc to find the hill separations between planetary systems.
+#The separations of interest are < 30.
 
 import numpy as np
 
@@ -86,10 +87,18 @@ import numpy as np
 #Ms = 0.99
 
 #HD 7924
-name = "HD 7924"
-a = [0.05664,0.1134,0.1551]
-m = np.asarray([0.0273,0.0247,0.0203])*0.0009543    #Jupiter mass->Solar mass
-Ms = 0.832
+#name = "HD 7924"
+#a = [0.05664,0.1134,0.1551]
+#m = np.asarray([0.0273,0.0247,0.0203])*0.0009543    #Jupiter mass->Solar mass
+#Ms = 0.832
+
+#LP 358-499
+name = "LP 358-499"
+r = [1.35, 1.58, 2.21]          #Earth-radii
+a = [0.0333, 0.0452, 0.078]
+P = [3.0715, 4.8679, 11.0244]
+m = []
+Ms = 0.52
 #**************************Systems**************************
 
 #constants
@@ -128,4 +137,7 @@ print ""
 print "%s:"%name
 for i in range(len(a)-1):
     asep = (a[i+1] - a[i]) /RH[i]
-    print "Planets %d and %d are separated by %f mutual Hill radii"%(i+1, i, asep)
+    if len(P) > 0:
+        print "Planets %d and %d are separated by %f mutual Hill radii, with a period ratio of %f"%(i+1, i, asep, P[i+1]/P[i])
+    else:
+        print "Planets %d and %d are separated by %f mutual Hill radii"%(i+1, i, asep)
