@@ -20,6 +20,7 @@ def find_unsubmitted_jobs(jobs_dir):
             unsub_jobs.append(j)
         elif os.path.isfile('output/%s_SA.bin'%basename) == True:
             N_true += 1
+    print('N_true=%d'%N_true)
     return unsub_jobs
 
 ###############################
@@ -30,6 +31,7 @@ jobs_dir = 'jobs/jobs3/'                    #once jobs1 are finished, submit job
 files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs
 
 print("found %d jobs"%len(files))
+
 
 #Njobs_counter = 0
 #for f in files:
