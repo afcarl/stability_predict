@@ -10,7 +10,7 @@ def submit_job(f, job_name):
     os.system('qsub %s'%job_name)
     os.system('mv %s %s'%(job_name,f))
 
-def find_unsubmitted_jobs(jobs_dir)
+def find_unsubmitted_jobs(jobs_dir):
     unsub_jobs = []
     jobs = glob.glob('%s/*'%jobs_dir)
     for j in jobs:
