@@ -48,7 +48,7 @@ import numpy as np
 
 #Kepler-60 (KOI-2086)
 #name = "Kepler-60"
-#P = [7.1334,8.92,11.898]         #AU
+#P = [7.1334,8.92,11.898]         #days
 #m = np.asarray([0.0132,0.0121,0.0131])*0.0009543
 #a = []
 #Ms = 1.041
@@ -93,12 +93,49 @@ import numpy as np
 #Ms = 0.832
 
 #LP 358-499
-name = "LP 358-499"
-r = [1.35, 1.58, 2.21]          #Earth-radii
-a = [0.0333, 0.0452, 0.078]
-P = [3.0715, 4.8679, 11.0244]
-m = []
-Ms = 0.52
+#name = "LP 358-499"
+#r = [1.35, 1.58, 2.21]          #Earth-radii
+#a = [0.0333, 0.0452, 0.078]    #AU
+#P = [3.0715, 4.8679, 11.0244]  #days
+#m = []
+#Ms = 0.52
+
+################Van Eylen Systems################
+#Kepler-92 (KOI-285)
+name = "Kepler-92"
+P = [13.749,26.723,49.357]      #days
+r = [3.65, 2.455, 2.067]        #Earth radii
+a, m = [], []                   #masses exist for inner two planets, Xie (2014)
+Ms = 1.209
+
+#Kepler-127 (KOI-271) - Hill separations are 33 and 20
+#name = "Kepler-127"
+#P = [14.44, 29.39, 48.63]     #days
+#r = [1.52, 2.389, 2.668]       #Earth radii
+#a, m = [], []
+#Ms = 1.240
+
+#Kepler-450 (KOI-279) - Hill separations are 37 and 13
+#name = "Kepler-450"
+#P = [7.515, 15.413, 28.454]     #days
+#r = [0.837, 2.62, 6.14]         #Earth radii
+#a, m = [], []
+#Ms = 1.346
+
+#Kepler-100 (KOI-41) - Hill separations are 30 and 52, too large
+#name = "Kepler-100"
+#P = [6.887, 12.816, 35.333]     #days
+#r = [1.305, 2.221, 1.514]       #Earth radii
+#a, m = [], []
+#Ms = 1.109
+
+#Kepler-126 (KOI-260) - Hill separations are 35 and 91, too large
+#name = "Kepler-126"
+#P = [10.49, 21.870, 100.282]     #days
+#r = [1.439, 1.498, 2.513]       #Earth radii
+#a, m = [], []
+#Ms = 1.148
+
 #**************************Systems**************************
 
 #constants

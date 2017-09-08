@@ -29,12 +29,12 @@ def find_unsubmitted_jobs(jobs_dir):
 jobs_dir = 'jobs/jobs3/'                    #once jobs1 are finished, submit jobs2/ and then jobs3/
 
 #files = glob.glob('%s/*'%jobs_dir)
-files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs
+files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them
 
-#Njobs_counter = 0
-#for f in files:
-#    job_name = f.split(jobs_dir)[1]
-#    submit_job(f, job_name)     #submitting job for the first time
-#    Njobs_counter += 1
-#
-#print('submitted %d jobs'%Njobs_counter)
+Njobs_counter = 0
+for f in files:
+    job_name = f.split(jobs_dir)[1]
+    submit_job(f, job_name)     #submitting job for the first time
+    Njobs_counter += 1
+
+print('submitted %d jobs'%Njobs_counter)
