@@ -18,6 +18,7 @@ epoch = 780
 def generate_jobs(system,dir,n_sims,norbits):
     orb_elements = ["m1","T1","P1","h1","k1","m2","T2","P2","h2","k2","m3","T3","P3","h3","k3"]
     
+    #check that it's a 3-planet system
     N_columns = len(pd.read_csv("systems/data_files/%s.dat"%system,sep="\s+").columns)
     Np = int(N_columns/5)
     if N_columns < 15:
@@ -29,11 +30,14 @@ def generate_jobs(system,dir,n_sims,norbits):
         for i in range(1,Np+1):
             orb_elements += list(("m%d"%i,"T%d"%i,"P%d"%i,"h%d"%i,"k%d"%i))
 
+    #load full posterior
     datafull = pd.read_csv("systems/data_files/%s.dat"%system,names=orb_elements,sep="\s+")
 
     #get random samples from full posterior
     rN = np.random.randint(0,len(datafull),n_sims)
     data = datafull.iloc[rN].reset_index(drop=True)
+
+    #make a function that double checks that each new drawn sample isn't a copy of a previous one?
 
     #save data to csv
     incl_header=True
@@ -62,11 +66,13 @@ def generate_jobs(system,dir,n_sims,norbits):
 
 ####################################################
 if __name__ == '__main__':
-    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
+    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
     #systems = ["KOI-0085"]
+    systems = ["KOI-0156","KOI-0168"]
+    #systems = ["KOI-2086"]
     
-    dir = 'jobs/'           #output directory for jobs
-    n_sims = 1            #number of sims created (x2 for shadow systems!!)
+    dir = 'jobs/jobs4/'     #output directory for jobs
+    n_sims = 500            #number of sims created (x2 for shadow systems!!)
     norbits = 1e9           #number of orbits of innermost planet
     
     for system in systems:
