@@ -15,7 +15,7 @@ Ms["KOI-1576"] = 0.907;
 epoch = 780
 
 ####################################################
-def generate_jobs(system,dir,n_sims,norbits):
+def generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits):
     orb_elements = ["m1","T1","P1","h1","k1","m2","T2","P2","h2","k2","m3","T3","P3","h3","k3"]
     
     #check that it's a 3-planet system
@@ -37,21 +37,22 @@ def generate_jobs(system,dir,n_sims,norbits):
     rN = np.random.randint(0,len(datafull),n_sims)
     data = datafull.iloc[rN].reset_index(drop=True)
 
-    #make a function that double checks that each new drawn sample isn't a copy of a previous one?
+    #*****************make a function that double checks that each new drawn sample isn't a copy of a previous one?
 
     #save data to csv
     incl_header=True
-    if os.path.isfile("systems/%s_data.csv"%system) == True:
-        data.index += pd.read_csv("systems/%s_data.csv"%system).index[-1] + 1   #start current index number at previous entry number
+    data_file = "%s/%s_data.csv"%(dat_dir,system)
+    if os.path.isfile(data_file) == True:
+        data.index += pd.read_csv(data_file).index[-1] + 1   #start current index number at previous entry number
         incl_header=False
-    data.to_csv("systems/%s_data.csv"%system, mode="a", header=incl_header)
+    data.to_csv(data_file, mode="a", header=incl_header)
 
     #generate jobs
     for shadow in [0,1]:
         for sample in data.iterrows():
             id_ = sample[0]             #id number of sample
             job_name = "%s_1e%dorbits_id%d_shadow%d"%(system,int(np.log10(norbits)),id_,shadow)
-            sh_script_name = "%s%s"%(dir,job_name)
+            sh_script_name = "%s%s"%(jobs_dir,job_name)
             with open(sh_script_name, 'w') as f:
                 f_head = open('job_header_sunnyvale','r')
                 f.write(f_head.read())
@@ -71,12 +72,13 @@ if __name__ == '__main__':
     systems = ["KOI-0156","KOI-0168"]
     #systems = ["KOI-2086"]
     
-    dir = 'jobs/jobs4/'     #output directory for jobs
+    jobs_dir = 'jobs/jobs4/'     #output directory for jobs
+    dat_dir = "systems_temp"    #output directory for storing _data.csv files
     n_sims = 500            #number of sims created (x2 for shadow systems!!)
     norbits = 1e9           #number of orbits of innermost planet
     
     for system in systems:
-        out = generate_jobs(system,dir,n_sims,norbits)
+        out = generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits)
         print("Generated %d simulations for %s"%(n_sims*2,system))
 
 
