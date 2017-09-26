@@ -4,6 +4,13 @@
 import numpy as np
 
 #**************************Systems**************************
+#Kepler-431
+#name = "Kepler-431"
+#P = [6.803,8.703,11.922]
+#r = [0.764,0.668,1.11]
+#m,a = [], []
+#Ms = 1.071
+
 #Kepler-114 (KOI-156)
 #name = "Kepler-114"
 #P = [5.1885,8.0413,11.7761]     #days
@@ -93,20 +100,27 @@ import numpy as np
 #Ms = 0.832
 
 #LP 358-499
-#name = "LP 358-499"
-#r = [1.35, 1.58, 2.21]          #Earth-radii
-#a = [0.0333, 0.0452, 0.078]    #AU
-#P = [3.0715, 4.8679, 11.0244]  #days
-#m = []
-#Ms = 0.52
+name = "LP 358-499"
+r = [1.38, 1.56, 2.12]          #Earth-radii
+a = [0.0333, 0.0452, 0.078]    #AU
+P = [3.0711, 4.8682, 11.0235]  #days
+m = []
+Ms = 0.52
+
+#GJ 9827
+#name = "GJ 9827"
+#P = [1.2,3.6,6.2]
+#r = [1.64,1.29,2.08]
+#m,a = [], []
+#Ms = 0.659
 
 ################Van Eylen Systems################
 #Kepler-92 (KOI-285)
-name = "Kepler-92"
-P = [13.749,26.723,49.357]      #days
-r = [3.65, 2.455, 2.067]        #Earth radii
-a, m = [], []                   #masses exist for inner two planets, Xie (2014)
-Ms = 1.209
+#name = "Kepler-92"
+#P = [13.749,26.723,49.357]      #days
+#r = [3.65, 2.455, 2.067]        #Earth radii
+#a, m = [], []                   #masses exist for inner two planets, Xie (2014)
+#Ms = 1.209
 
 #Kepler-127 (KOI-271) - Hill separations are 33 and 20
 #name = "Kepler-127"

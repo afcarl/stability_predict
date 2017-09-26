@@ -3,39 +3,103 @@ import numpy as np
 import pandas as pd
 import sys
 import os
+import forecaster.mr_forecast as mr
+from random import random, uniform, seed
+import matplotlib.pyplot as plt
 
 #star mass for each system
 Ms = {};
 Ms["KOI-0156"] = 0.56; Ms["KOI-0168"] = 1.11; Ms["KOI-2086"] = 1.04; Ms["Kepler-431"] = 1.071;
 Ms["KOI-0085"] = 1.25; Ms["KOI-0115"] = 0.961; Ms["KOI-0152"] = 1.165; Ms["KOI-0250"] = 0.544;
 Ms["KOI-0314"] = 0.521; Ms["KOI-0523"] = 1.07; Ms["KOI-0738"] = 0.979; Ms["KOI-1270"] = 0.83;
-Ms["KOI-1576"] = 0.907;
+Ms["KOI-1576"] = 0.907; Ms["LP-358-499"] = 0.52;
 
 #epoch
 epoch = 780
 
-####################################################
-def generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits):
-    orb_elements = ["m1","T1","P1","h1","k1","m2","T2","P2","h2","k2","m3","T3","P3","h3","k3"]
+#radius and uncertainties for systems with no masses: (radius, 1-sigma) pairs
+rad = {}
+rad["Kepler-431"] = ((0.77,0.15),(0.76,0.15),(1.08,0.205))
+rad["LP-358-499"] = ((1.38,0.04),(1.56,0.09),(2.12,0.03))
+
+#periods for systems with no masses
+period = {}
+period["Kepler-431"] = (6.803, 8.703, 11.922)
+period["LP-358-499"] = (3.0712, 4.8682, 11.0235)
+
+########### Helper function for systems with no masses ###########
+def draw_e(P1,P2,P3,m1,m2,m3,Ms):
+    a1, a2, a3 = ((P1/365)**2 * Ms)**(1./3.), ((P2/365)**2 * Ms)**(1./3.), ((P3/365)**2 * Ms)**(1./3.)
     
-    #check that it's a 3-planet system
-    N_columns = len(pd.read_csv("systems/data_files/%s.dat"%system,sep="\s+").columns)
-    Np = int(N_columns/5)
-    if N_columns < 15:
-        print("**The number of planets in system %s is %f, *not* generating jobs**"%(system,N_columns/5.))
-        return 0
-    elif N_columns > 15:
-        print("The number of planets in system %s is %f, generating jobs"%(system,N_columns/5.))
-        orb_elements = []
-        for i in range(1,Np+1):
-            orb_elements += list(("m%d"%i,"T%d"%i,"P%d"%i,"h%d"%i,"k%d"%i))
+    ecrit1 = (a2-a1)/a1
+    ecrit21 = (a2-a1)/a2
+    ecrit23 = (a3-a2)/a2
+    ecrit3 = (a3-a2)/a3
+    
+    logemax1 = np.log10(ecrit1)
+    logemax2 = np.log10(min(ecrit21, ecrit23))
+    logemax3 = np.log10(ecrit3)
+    
+    earth = 0.000003003
+    logemin1 = np.log10(m2*earth/ecrit1**2)
+    logemin2 = np.log10(max(m1*earth/ecrit21**2, m3*earth/ecrit23**2))
+    logemin3 = np.log10(m2*earth/ecrit3**2)
+    
+    e1 = min(10.**uniform(logemin1, logemax1), 1.) # make sure ecc < 1
+    e2 = min(10.**uniform(logemin2, logemax2), 1.)
+    e3 = min(10.**uniform(logemin3, logemax3), 1.)
+    return e1, e2, e3
 
-    #load full posterior
-    datafull = pd.read_csv("systems/data_files/%s.dat"%system,names=orb_elements,sep="\s+")
+########### Main Routine ###########
+def generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits):
+    
+    if system in ["Kepler-431", "LP-358-499"]:
+        orb_elements = ["m1","MA1","P1","e1","w1","m2","MA2","P2","e2","w2","m3","MA3","P3","e3","w3"]
+        Np = 3
+        
+        # get probabilistic masses
+        r1 = np.random.normal(rad[system][0][0],rad[system][0][1],n_sims)
+        r2 = np.random.normal(rad[system][1][0],rad[system][1][1],n_sims)
+        r3 = np.random.normal(rad[system][2][0],rad[system][2][1],n_sims)
+        m1 = mr.Rpost2M(r1, unit='Earth', grid_size=1e3, classify='Yes')  #earth masses
+        m2 = mr.Rpost2M(r2, unit='Earth', grid_size=1e3, classify='Yes')
+        m3 = mr.Rpost2M(r3, unit='Earth', grid_size=1e3, classify='Yes')
+        
+        # randomly generate rest of orbital parameters
+        P1, P2, P3 = period[system][0], period[system][1], period[system][2]
+        w1, w2, w3 = 2*np.pi*np.random.random(n_sims),2*np.pi*np.random.random(n_sims),2*np.pi*np.random.random(n_sims)
+        MA1, MA2, MA3 = 2*np.pi*np.random.random(n_sims),2*np.pi*np.random.random(n_sims),2*np.pi*np.random.random(n_sims)
+        e = []
+        for i in range(n_sims):
+            e.append(draw_e(P1,P2,P3,m1[i],m2[i],m3[i],Ms[system]))
+        e1, e2, e3 = zip(*np.asarray(e))
 
-    #get random samples from full posterior
-    rN = np.random.randint(0,len(datafull),n_sims)
-    data = datafull.iloc[rN].reset_index(drop=True)
+        # store in data frame
+        data = []
+        for i in range(n_sims):
+            data.append([m1[i],MA1[i],P1,e1[i],w1[i],m2[i],MA2[i],P2,e2[i],w2[i],m3[i],MA3[i],P3,e3[i],w3[i]])
+        data = pd.DataFrame(np.asarray(data),columns=orb_elements)
+    else:
+        orb_elements = ["m1","T1","P1","h1","k1","m2","T2","P2","h2","k2","m3","T3","P3","h3","k3"]
+        
+        # check that it's a 3-planet system
+        N_columns = len(pd.read_csv("systems/data_files/%s.dat"%system,sep="\s+").columns)
+        Np = int(N_columns/5)
+        if N_columns < 15:
+            print("**The number of planets in system %s is %f, *not* generating jobs**"%(system,N_columns/5.))
+            return 0
+        elif N_columns > 15:
+            print("The number of planets in system %s is %f, generating jobs"%(system,N_columns/5.))
+            orb_elements = []
+            for i in range(1,Np+1):
+                orb_elements += list(("m%d"%i,"T%d"%i,"P%d"%i,"h%d"%i,"k%d"%i))
+
+        # load full posterior
+        datafull = pd.read_csv("systems/data_files/%s.dat"%system,names=orb_elements,sep="\s+")
+
+        # get random samples from full posterior, store in data frame
+        rN = np.random.randint(0,len(datafull),n_sims)
+        data = datafull.iloc[rN].reset_index(drop=True)
 
     #*****************make a function that double checks that each new drawn sample isn't a copy of a previous one?
 
@@ -68,13 +132,11 @@ def generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits):
 ####################################################
 if __name__ == '__main__':
     #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
-    #systems = ["KOI-0085"]
-    systems = ["KOI-0156","KOI-0168"]
-    #systems = ["KOI-2086"]
+    systems = ["LP-358-499"]
     
-    jobs_dir = 'jobs/jobs4/'     #output directory for jobs
-    dat_dir = "systems_temp"    #output directory for storing _data.csv files
-    n_sims = 500            #number of sims created (x2 for shadow systems!!)
+    jobs_dir = "jobs/"     #output directory for jobs
+    dat_dir = "systems"    #output directory for storing _data.csv files
+    n_sims = 1000          #number of sims created (x2 for shadow systems!!)
     norbits = 1e9           #number of orbits of innermost planet
     
     for system in systems:
