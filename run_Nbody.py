@@ -7,8 +7,10 @@ import rebound
 import time
 import math
 
+# planetary radii are hill radii, and thus if hill radii touch (i.e. collision),
+# causes simulation to stop running and have flag for whether sim stopped due to collision
 def collision(reb_sim, col):
-    reb_sim.contents._status = 5 # causes simulation to stop running and have flag for whether sim stopped due to collision
+    reb_sim.contents._status = 5
     return 0
 
 def get_M(e, w, T, P, epoch):
@@ -27,7 +29,6 @@ shadow = int(sys.argv[6])
 name = sys.argv[7]
 
 #load data
-system = name.split('_')[0]
 data = pd.read_csv('systems/%s_data.csv'%system)
 d = data.iloc[id]
 
@@ -46,7 +47,7 @@ sim.add(m=Ms)
 #minimum hill radius
 earth = 0.000003003
 a, mut_hill = [], []
-for i in range(1, Nplanets+1):
+for i in range(1, Nplanets + 1):
     a.append(((d["P%d"%i]/365)**2 * Ms)**(1./3.))
 for i in range(1, Nplanets):
     mut_hill.append(a[i]*((d["m%d"%i]+d["m%d"%(i+1)])*earth/Ms/3.)**(1./3.))
@@ -58,7 +59,7 @@ minhill = min(mut_hill)
 #minhill = min(hill12,hill23)
 
 #add planets
-for i in range(1, Nplanets+1):
+for i in range(1, Nplanets + 1):
     m, P = d["m%d"%i]*earth*Ms, d["P%d"%i]              #Ms, days, BJD-2,454,900
     try:
         e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
