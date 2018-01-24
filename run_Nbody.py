@@ -20,12 +20,11 @@ def get_M(e, w, T, P, epoch):
 #arguments
 system = sys.argv[1]
 id = int(sys.argv[2])
-Ms = float(sys.argv[3])
-epoch = float(sys.argv[4])
-maxorbs = float(sys.argv[5])
-Nplanets = int(sys.argv[6])
-shadow = int(sys.argv[7])
-name = sys.argv[8]
+epoch = float(sys.argv[3])
+maxorbs = float(sys.argv[4])
+Nplanets = int(sys.argv[5])
+shadow = int(sys.argv[6])
+name = sys.argv[7]
 
 #load data
 system = name.split('_')[0]
@@ -41,14 +40,15 @@ sim.collision = 'direct'
 sim.collision_resolve = collision
 
 #add sun
+Ms = d["Ms"]
 sim.add(m=Ms)
 
 #minimum hill radius
 earth = 0.000003003
 a, mut_hill = [], []
-for i in range(1,Nplanets+1):
+for i in range(1, Nplanets+1):
     a.append(((d["P%d"%i]/365)**2 * Ms)**(1./3.))
-for i in range(1,Nplanets):
+for i in range(1, Nplanets):
     mut_hill.append(a[i]*((d["m%d"%i]+d["m%d"%(i+1)])*earth/Ms/3.)**(1./3.))
 minhill = min(mut_hill)
 
@@ -58,7 +58,7 @@ minhill = min(mut_hill)
 #minhill = min(hill12,hill23)
 
 #add planets
-for i in range(1,Nplanets+1):
+for i in range(1, Nplanets+1):
     m, P = d["m%d"%i]*earth*Ms, d["P%d"%i]              #Ms, days, BJD-2,454,900
     try:
         e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
