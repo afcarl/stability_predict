@@ -122,23 +122,49 @@ def generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits):
         incl_header=False
     data.to_csv(data_file, mode="a", header=incl_header)
 
-    #generate jobs - sunnyvale
-    for shadow in [0,1]:
-        for sample in data.iterrows():
-            id_ = sample[0]             #id number of sample
+    #generate jobs
+    cluster_type = 'sunnyvale'      #sunnyvale or aci-b
+    shadow = 0
+#    for shadow in [0,1]:
+    for sample in data.iterrows():
+        id_ = sample[0]             #id number of sample
             job_name = "%s_1e%dorbits_id%d_shadow%d"%(system,int(np.log10(norbits)),id_,shadow)
-            sh_script_name = "%s%s"%(jobs_dir,job_name)
+            sh_script_name = "%s%s"%(jobs_dir, job_name)
             with open(sh_script_name, 'w') as f:
-                f_head = open('job_header_sunnyvale','r')
-                f.write(f_head.read())
-                f_head.close()
-                f.write('#PBS -N %s \n'%job_name)
-                f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
-                f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
-                f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
-                f.write('python run_Nbody.py %s %d %.2f %d %d %d %s >& batch.output\n'%(system,id_,epoch,norbits,Np,shadow,job_name))
+                if cluster_type == 'sunnyvale':
+                    f_head = open('job_header_sunnyvale','r')
+                    f.write(f_head.read())
+                    f_head.close()
+                    f.write('#PBS -N %s \n'%job_name)
+                    f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
+                    f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
+                    f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
+                elif cluster_type == 'aci-b':
+                    f_head = open('job_header_aci-b','r')
+                    f.write(f_head.read())
+                    f_head.close()
+            f.write('python run_Nbody.py %s %d %.2f %d %d %d %s >& batch.output\n'%(system,id_,epoch,norbits,Np,shadow,job_name))
             f.close()
     return 1
+
+
+#    #generate jobs - sunnyvale
+#    for shadow in [0,1]:
+#        for sample in data.iterrows():
+#            id_ = sample[0]             #id number of sample
+#            job_name = "%s_1e%dorbits_id%d_shadow%d"%(system,int(np.log10(norbits)),id_,shadow)
+#            sh_script_name = "%s%s"%(jobs_dir,job_name)
+#            with open(sh_script_name, 'w') as f:
+#                f_head = open('job_header_sunnyvale','r')
+#                f.write(f_head.read())
+#                f_head.close()
+#                f.write('#PBS -N %s \n'%job_name)
+#                f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
+#                f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
+#                f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
+#                f.write('python run_Nbody.py %s %d %.2f %d %d %d %s >& batch.output\n'%(system,id_,epoch,norbits,Np,shadow,job_name))
+#            f.close()
+#    return 1
 
 ####################################################
 if __name__ == '__main__':
