@@ -6,6 +6,7 @@ import sys
 import rebound
 import time
 import math
+import systems.sys_params as sysp
 
 # planetary radii are hill radii, and thus if hill radii touch (i.e. collision),
 # causes simulation to stop running and have flag for whether sim stopped due to collision
@@ -59,16 +60,25 @@ minhill = min(mut_hill)
 #minhill = min(hill12,hill23)
 
 #add planets
+nomass_sys, vaneye_sys, danjh_sys = sysp.get_system_lists()
 for i in range(1, Nplanets + 1):
-    m, P = d["m%d"%i]*earth*Ms, d["P%d"%i]              #Ms, days, BJD-2,454,900
-    try:
-        e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
-        w = np.arctan2(d["h%d"%i],d["k%d"%i])           # arctan2(h/k)
-        M = get_M(e,w,d["T%d"%i],P,epoch)               # T = epoch = BJD-2,454,900
-    except:
+    m, P = d["m%d"%i]*earth, d["P%d"%i]
+    if system in nomass_sys:
         e = d["e%d"%i]
         w = d["w%d"%i]
         M = d["MA%d"%i]
+    elif system in vaneye_sys:
+        e = d["e%d"%i]
+        w = d["w%d"%i]
+        M = get_M(e, w, d["T%d"%i], P, epoch)
+    elif system in danjh_sys:
+        e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
+        w = np.arctan2(d["h%d"%i], d["k%d"%i])          # arctan2(h/k)
+        M = get_M(e, w, d["T%d"%i], P, epoch)           # T = epoch = BJD-2,454,900
+        m *= Ms     #dan jontoff-hutter planetary masses scaled to 1 solar mass.
+    else:
+        raise Exception('system is not recognized')
+        sys.exit(1)
     sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=M, r=minhill) #G=1 units!
 sim.move_to_com()
 
