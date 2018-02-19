@@ -15,19 +15,25 @@ def collision(reb_sim, col):
     return 0
 
 def get_M(e, w, T, P, epoch):
-    f = np.pi/2 - w
-    E = 2*np.arctan(np.tan(f/2) * np.sqrt((1-e)/(1+e))) #E and f always in same half of ellipse
-    M = E - e*np.sin(E)
-    return M + (epoch - T)*2*np.pi/P
+    f_midtr = np.pi/2 - w   #at mid-transit
+    E_midtr = 2*np.arctan(np.tan(f_midtr/2) * np.sqrt((1-e)/(1+e))) #E and f always in same half of ellipse
+    M_midtr = E_midtr - e*np.sin(E_midtr)
+    M_epoch = M_midtr + (epoch - T)*2*np.pi/P
+    return M_epoch
+
+for i in ["1","2","3"]:
+    e, w, n = data["e%s"%i], data["w%s"%i], 2*np.pi/data["P%s"%i]
+    E_midtr = 2*np.arctan(np.sqrt((1-e)/(1+e))*np.tan((np.pi/2 - w)/2))
+    M_midtr = E_midtr - e*np.sin(E_midtr)
+    data["M%s"%i] = M_midtr + n*(data["T%s"%i] - min_transit_times - M_buffer)
 
 #arguments
 system = sys.argv[1]
 id = int(sys.argv[2])
-epoch = float(sys.argv[3])
-maxorbs = float(sys.argv[4])
-Nplanets = int(sys.argv[5])
-shadow = int(sys.argv[6])
-name = sys.argv[7]
+maxorbs = float(sys.argv[3])
+Nplanets = int(sys.argv[4])
+shadow = int(sys.argv[5])
+name = sys.argv[6]
 
 #load data
 data = pd.read_csv('systems/%s_data.csv'%system)
@@ -52,12 +58,8 @@ for i in range(1, Nplanets + 1):
     a.append(((d["P%d"%i]/365)**2 * Ms)**(1./3.))
 for i in range(1, Nplanets):
     mut_hill.append(a[i]*((d["m%d"%i]+d["m%d"%(i+1)])*earth/Ms/3.)**(1./3.))
+# Note: This is a smaller estimate than the true mut_hill - missing 2*pi & mean(a[i]+a[i+1])
 minhill = min(mut_hill)
-
-#a1,a2 = ((d["P1"]/365)**2 * Ms)**(1./3.), ((d["P2"]/365)**2 * Ms)**(1./3.)
-#hill12 = a1*((d["m1"]+d["m2"])*earth/Ms/3.)**(1./3.)
-#hill23 = a2*((d["m2"]+d["m3"])*earth/Ms/3.)**(1./3.)
-#minhill = min(hill12,hill23)
 
 #add planets
 nomass_sys, vaneye_sys, danjh_sys = sysp.get_system_lists()
@@ -70,10 +72,12 @@ for i in range(1, Nplanets + 1):
     elif system in vaneye_sys:
         e = d["e%d"%i]
         w = d["w%d"%i]
-        M = get_M(e, w, d["T%d"%i], P, epoch)
+        min_MidTransitTime = np.min((data["T1"], data["T2"], data["T3"]))
+        M = get_M(e, w, d["T%d"%i], P, min_MidTransitTime)
     elif system in danjh_sys:
         e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
         w = np.arctan2(d["h%d"%i], d["k%d"%i])          # arctan2(h/k)
+        epoch = 780
         M = get_M(e, w, d["T%d"%i], P, epoch)           # T = epoch = BJD-2,454,900
         m *= Ms     #dan jontoff-hutter planetary masses scaled to 1 solar mass.
     else:

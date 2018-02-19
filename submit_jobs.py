@@ -26,7 +26,7 @@ def find_unsubmitted_jobs(jobs_dir):
 
 ###############################
 
-jobs_dir = 'jobs/'                    #once jobs1 are finished, submit jobs2/ and then jobs3/
+jobs_dir = 'jobs/'
 
 files = glob.glob('%s/*'%jobs_dir)
 #files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them

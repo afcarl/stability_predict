@@ -13,9 +13,6 @@ nomass_sys, vaneye_sys, danjh_sys = sysp.get_system_lists()
 # get star mass/uncertainties for each system
 Ms = sysp.get_Ms()
 
-#epoch
-epoch = 780
-
 ########### Gaussian sampler, including systems with asymmetric error bars ###########
 def draw_from_gaussian(tuple, n_samples):
     mean, upper, lower = tuple
@@ -158,14 +155,14 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
                 f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
                 f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
                 f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
-                f.write('python run_Nbody.py %s %d %.2f %d %d %d %s >& batch.output\n'%(system,id_,epoch,norbits,Np,shadow,job_name))
+                f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
                 f.close()
         elif cluster_type == 'aci-b':
             with open(sh_script_name, 'w') as f:
                 f_head = open('job_header_aci-b','r')
                 f.write(f_head.read())
                 f_head.close()
-                f.write('python run_Nbody.py %s %d %.2f %d %d %d %s >& batch.output\n'%(system,id_,epoch,norbits,Np,shadow,job_name))
+                f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
                 f.close()
     return 1
 
@@ -176,7 +173,7 @@ if __name__ == '__main__':
     
     jobs_dir = "jobs/"     #output directory for jobs
     dat_dir = "systems"    #output directory for storing _data.csv files
-    n_sims = 1000            #number of sims created (x2 for shadow systems!!)
+    n_sims = 800            #number of sims created (x2 for shadow systems!!)
     #norbits = 1e9           #number of orbits of innermost planet
     norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
     
