@@ -82,7 +82,7 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
         w1, MA1 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
         w2, MA2 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
         w3, MA3 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
-        e1 = np.random.beta(a=0.867, b=3.03, size=n_sims)   # Kipping (2013)
+        e1 = np.random.beta(a=0.867, b=3.03, size=n_sims)   # Kipping (2013) eccentricity prior
         e2 = np.random.beta(a=0.867, b=3.03, size=n_sims)
         e3 = np.random.beta(a=0.867, b=3.03, size=n_sims)
 #        e = []
@@ -99,11 +99,37 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
     else:
         # van-eyelen samples
         if system in vaneye_sys:
-            orb_params = ["T1","b1","e1","w1","r1/rs","Fs1","T2","b2","e2","w2","r2/rs",
-                          "Fs2","T3","b3","w3","e3","r3/rs","Fs3","gam1","gam2"]
+            # get periods, determine proper ordering (not ordered by default!)
+            P1 = float(open("systems/data_files/van_eylen/%s/period_%s.01.txt"%(system, system), 'r').readlines()[1].split()[0])
+            P2 = float(open("systems/data_files/van_eylen/%s/period_%s.02.txt"%(system, system), 'r').readlines()[1].split()[0])
+            P3 = float(open("systems/data_files/van_eylen/%s/period_%s.03.txt"%(system, system), 'r').readlines()[1].split()[0])
+            sort_index = [x for _,x in sorted(zip([P1, P2, P3],["1","2","3"]))]
+            orb_params = []
+            for index in sort_index:
+                orb_params += ["T%s"%index,"b%s"%index,"e%s"%index,"w%s"%index,"r%s/rs"%index,"Fs%s"%index]
+            orb_params += ["gam1","gam2"]
+
             samples = np.load("systems/data_files/van_eylen/%s/chain_period_eccentricity_finalone.dat.npy"%system)
-            s = samples.shape
-            datafull = pd.DataFrame(samples.reshape(s[0]*s[1],s[2]), columns=orb_params)
+            data = pd.DataFrame(samples.reshape(-1, samples.shape[2]), columns=orb_params)
+
+            # absolute value. Vincent used negatives to keep track of longer/shorter transits due to angles
+            for c in ["e1","e2","e3"]:
+                data[c] = data[c].abs()
+
+            # adding period to each column
+            data["P%s"%sort_index[0]] = P1
+            data["P%s"%sort_index[1]] = P2
+            data["P%s"%sort_index[2]] = P3
+                
+            # getting masses from probabilistic m-r conversion, do after grabbing subset so it doesnt calculate for 20,000+ samples
+            Rs = float(open("systems/data_files/van_eylen/%s/stellar_parameters.txt"%system, 'r').readlines()[2].split()[1])
+            data["m1"] = mr.Rpost2M(data["r1/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)  #earth masses
+            data["m2"] = mr.Rpost2M(data["r2/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)
+            data["m3"] = mr.Rpost2M(data["r3/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)
+
+            rN = list(range(len(data)))
+            np.random.shuffle(rN)
+            data = data.iloc[rN[0:n_sims]].reset_index(drop=True)
 
         # daniel jontoff-hutter samples
         elif system in danjh_sys:
@@ -118,15 +144,18 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
                 orb_params = ["m1","T1","P1","h1","k1","m2","T2","P2",
                               "h2","k2","m3","T3","P3","h3","k3"]
             # load full posterior
-            datafull = pd.read_csv("systems/data_files/%s.dat"%system, names=orb_params, sep="\s+")
+            data = pd.read_csv("systems/data_files/%s.dat"%system, names=orb_params, sep="\s+")
+
+            # select random subset
+            rN = list(range(len(data)))
+            np.random.shuffle(rN)
+            data = data.iloc[rN[0:n_sims]].reset_index(drop=True)
         else:
             print("system not found")
             return 0
-        # get random samples from full posterior, store in data frame
-        rN = np.random.randint(0, len(datafull), n_sims)
-        data = datafull.iloc[rN].reset_index(drop=True)
-        data["Ms"] = star_mass
 
+        data["Ms"] = star_mass
+            
     #*****make a function later that double checks that each new drawn sample isn't a copy of a previous one?
 
     # Save data to csv
