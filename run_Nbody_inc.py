@@ -57,8 +57,11 @@ sim.add(m=Ms)
 
 #add planets
 nomass_sys, vaneye_sys, danjh_sys = sysp.get_system_lists()
+inc, Omega = [], []
+Rs = get_Rs(system)*0.00465046726  # radius of star in AU
 for i in range(1, Nplanets + 1):
     m, P = d["m%d"%i]*earth2solar, d["P%d"%i]
+    a = ((P/365.)**2 * Ms)**(1./3.)
     if system in nomass_sys:
         e = d["e%d"%i]
         w = d["w%d"%i]
@@ -77,9 +80,10 @@ for i in range(1, Nplanets + 1):
     else:
         raise Exception('system is not recognized')
         sys.exit(1)
-    sim.add(m=m, P=P*2*np.pi/365., e=e, omega=w, M=M) # G=1 units!
-    hill = sim.particles[-1].a*(m/(3*Ms))**(1./3.)
-    sim.particles[-1].r = hill/2.  # set particle radius to Hill_radius/2
+    inc.append(np.arcsin(Rs/a)*np.random.random()*np.sign(np.random.random() - 0.5))
+    Omega.append(2*np.pi*np.random.random())
+    hill = a*(m/(3*Ms))**(1./3.)
+    sim.add(m=m, a=a, e=e, omega=w, M=M, inc=inc[-1], Omega=Omega[-1], r=hill/2.) # G=1 units!
 sim.move_to_com()
 
 #shadow system
@@ -94,18 +98,19 @@ sim.dt = dt*P1              # ~3% orbital period
 tmax = maxorbs*P1
 
 #save simulation archive
-sim.initSimulationArchive('output/%s_SA.bin'%name, interval=tmax/1000.)     #save checkpoints.
+sim.initSimulationArchive('output/%s_SA_inc.bin'%name, interval=tmax/1000.)     #save checkpoints.
 
 #simulate
 E0 = sim.calculate_energy()
 t0 = time.time()
 print("starting simulation")
-sim.integrate(tmax)                                                         #will stop if collision occurs
+sim.integrate(tmax)         # will stop if collision occurs
 print("finished simulation")
 Ef = sim.calculate_energy()
 Eerr = abs((Ef-E0)/E0)
 
 #need to store the result somewhere
-f = open('systems/%s_Nbodyresults.csv'%system, "a")
-f.write('%s, %d, %d, %e, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0))
+f = open('systems/%s_Nbodyresults_inc.csv'%system, "a")
+f.write('%s, %d, %d, %e, %e, %e, %e, %e, %f, %f, %f, %f, %f, %f \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0,
+                                                                     inc[0],inc[1],inc[2],Omega[0],Omega[1],Omega[2]))
 

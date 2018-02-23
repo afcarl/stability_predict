@@ -52,8 +52,35 @@ def draw_e(Ms, P1, P2, P3, m1, m2, m3):
     e3 = min(10.**uniform(logemin3, logemax3), 1.)
     return e1, e2, e3
 
+########### Generate Jobs ###########
+def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci-b', Np=3):
+        for shadow in shadow_sys:
+            for sample in data.iterrows():
+                id_ = sample[0]             #id number of sample
+                job_name = "%s_%.1eorbits_id%d_shadow%d"%(system, norbits, id_, shadow)
+                sh_script_name = "%s%s"%(jobs_dir, job_name)
+                if cluster_type == 'sunnyvale':
+                    with open(sh_script_name, 'w') as f:
+                        f_head = open('job_header_sunnyvale','r')
+                        f.write(f_head.read())
+                        f_head.close()
+                        f.write('#PBS -N %s \n'%job_name)
+                        f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
+                        f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
+                        f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
+                        f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                        f.close()
+                elif cluster_type == 'aci-b':
+                    with open(sh_script_name, 'w') as f:
+                        f_head = open('job_header_aci-b','r')
+                        f.write(f_head.read())
+                        f_head.close()
+                        #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                        f.write('python run_Nbody_inc.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                        f.close()
+
 ########### Main Routine ###########
-def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
+def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
     
     if n_sims % 2 == 1:
         raise Exception("n_sims must be even for sampling purposes")
@@ -66,7 +93,6 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
     if system in nomass_sys:
         orb_params = ["m1","MA1","P1","e1","w1","m2","MA2","P2",
                       "e2","w2","m3","MA3","P3","e3","w3","Ms"]
-        Np = 3
         rad, period = sysp.get_rad_and_period()
         
         # get probabilistic masses
@@ -82,13 +108,13 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
         w1, MA1 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
         w2, MA2 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
         w3, MA3 = 2*np.pi*np.random.random(n_sims), 2*np.pi*np.random.random(n_sims)
-        e1 = np.random.beta(a=0.867, b=3.03, size=n_sims)   # Kipping (2013) eccentricity prior
-        e2 = np.random.beta(a=0.867, b=3.03, size=n_sims)
-        e3 = np.random.beta(a=0.867, b=3.03, size=n_sims)
-#        e = []
-#        for i in range(n_sims):
-#            e.append(draw_e(star_mass[i], P1, P2, P3, m1[i], m2[i], m3[i]))
-#        e1, e2, e3 = list(zip(*np.asarray(e)))
+#        e1 = np.random.beta(a=0.867, b=3.03, size=n_sims)   # Kipping (2013) eccentricity prior
+#        e2 = np.random.beta(a=0.867, b=3.03, size=n_sims)
+#        e3 = np.random.beta(a=0.867, b=3.03, size=n_sims)
+        e = []
+        for i in range(n_sims):
+            e.append(draw_e(star_mass[i], P1, P2, P3, m1[i], m2[i], m3[i]))
+        e1, e2, e3 = list(zip(*np.asarray(e)))
 
         # store in data frame
         data = []
@@ -120,16 +146,17 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
             data["P%s"%sort_index[0]] = P1
             data["P%s"%sort_index[1]] = P2
             data["P%s"%sort_index[2]] = P3
-                
-            # getting masses from probabilistic m-r conversion, do after grabbing subset so it doesnt calculate for 20,000+ samples
-            Rs = float(open("systems/data_files/van_eylen/%s/stellar_parameters.txt"%system, 'r').readlines()[2].split()[1])
-            data["m1"] = mr.Rpost2M(data["r1/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)  #earth masses
-            data["m2"] = mr.Rpost2M(data["r2/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)
-            data["m3"] = mr.Rpost2M(data["r3/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3)
-
+            
+            # select random subset of data
             rN = list(range(len(data)))
             np.random.shuffle(rN)
             data = data.iloc[rN[0:n_sims]].reset_index(drop=True)
+            
+            # getting masses from probabilistic m-r conversion, do after grabbing subset so it doesnt calculate for 20,000+ samples
+            Rs = float(open("systems/data_files/van_eylen/%s/stellar_parameters.txt"%system, 'r').readlines()[2].split()[1])
+            data["m1"] = mr.Rpost2M(data["r1/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3, classify='Yes')  #earth masses
+            data["m2"] = mr.Rpost2M(data["r2/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3, classify='Yes')
+            data["m3"] = mr.Rpost2M(data["r3/rs"]*Rs/0.009158, unit='Earth', grid_size=1e3, classify='Yes')
 
         # daniel jontoff-hutter samples
         elif system in danjh_sys:
@@ -154,6 +181,7 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
             print("system not found")
             return 0
 
+        # add stellar mass to dataframe
         data["Ms"] = star_mass
             
     #*****make a function later that double checks that each new drawn sample isn't a copy of a previous one?
@@ -167,47 +195,28 @@ def generate_jobs(system, dat_dir, jobs_dir, n_sims, norbits):
         incl_header=False
     data.to_csv(data_file, mode="a", header=incl_header)
 
-    # Generate jobs
-    cluster_type = 'aci-b'      #sunnyvale or aci-b
-    shadow = 0
-#    for shadow in [0,1]:
-    for sample in data.iterrows():
-        id_ = sample[0]             #id number of sample
-        job_name = "%s_1e%dorbits_id%d_shadow%d"%(system,int(np.log10(norbits)),id_,shadow)
-        sh_script_name = "%s%s"%(jobs_dir, job_name)
-        if cluster_type == 'sunnyvale':
-            with open(sh_script_name, 'w') as f:
-                f_head = open('job_header_sunnyvale','r')
-                f.write(f_head.read())
-                f_head.close()
-                f.write('#PBS -N %s \n'%job_name)
-                f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
-                f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
-                f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
-                f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
-                f.close()
-        elif cluster_type == 'aci-b':
-            with open(sh_script_name, 'w') as f:
-                f_head = open('job_header_aci-b','r')
-                f.write(f_head.read())
-                f_head.close()
-                f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
-                f.close()
-    return 1
+    # generate actual jobs
+    generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
 
 ####################################################
 if __name__ == '__main__':
-    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086","Kepler-446"]
-    systems = ["EPIC-210897587-1","EPIC-210897587-2"]
+    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
+    #systems = ["EPIC-210897587-1","EPIC-210897587-2"]
+    #systems = ["K00041","K00085","K00271"]
+    systems = ["Kepler-431", "LP-358-499", "Kepler-446"]
     
-    jobs_dir = "jobs/"     #output directory for jobs
-    dat_dir = "systems"    #output directory for storing _data.csv files
-    n_sims = 800            #number of sims created (x2 for shadow systems!!)
-    #norbits = 1e9           #number of orbits of innermost planet
-    norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
+    jobs_dir = "jobs/"      #output directory for jobs
+    dat_dir = "systems"     #output directory for storing _data.csv files
+    n_sims = 10             #number of sims created
+    shadow_sys = [0,1]      #if no shadow systems, set shadow_sys = [0]
+    norbits = 1e9          #number of orbits of innermost planet
+    #norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
     
+#    for system in systems:
+#        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys)
+#        print("Generated %d simulations for %s"%(n_sims*len(shadow_sys),system))
+
     for system in systems:
-        out = generate_jobs(system,dat_dir,jobs_dir,n_sims,norbits)
-        print("Generated %d simulations for %s"%(n_sims,system))
-
-
+        data = pd.read_csv("systems/%s_data.csv"%system)[0:n_sims]
+        generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
+        print("Generated jobs for %d simulations for %s"%(n_sims*len(shadow_sys),system))
