@@ -58,7 +58,8 @@ sim.add(m=Ms)
 #add planets
 nomass_sys, vaneye_sys, danjh_sys = sysp.get_system_lists()
 inc, Omega = [], []
-Rs = get_Rs(system)*0.00465046726  # radius of star in AU
+Rs = sysp.get_Rs(system)*0.00465046726  # radius of star in AU
+logincmin = np.log10(1.e-3)        # min inclination
 for i in range(1, Nplanets + 1):
     m, P = d["m%d"%i]*earth2solar, d["P%d"%i]
     a = ((P/365.)**2 * Ms)**(1./3.)
@@ -80,7 +81,8 @@ for i in range(1, Nplanets + 1):
     else:
         raise Exception('system is not recognized')
         sys.exit(1)
-    inc.append(np.arcsin(Rs/a)*np.random.random()*np.sign(np.random.random() - 0.5))
+    logincmax = np.log10(0.9*np.arcsin(Rs/a)*np.pi/180) # 0.9 since grazing transits aren't detected
+    inc.append(10.**np.random.uniform(logincmin, logincmax))
     Omega.append(2*np.pi*np.random.random())
     hill = a*(m/(3*Ms))**(1./3.)
     sim.add(m=m, a=a, e=e, omega=w, M=M, inc=inc[-1], Omega=Omega[-1], r=hill/2.) # G=1 units!
