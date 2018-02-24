@@ -113,6 +113,6 @@ Eerr = abs((Ef-E0)/E0)
 
 #need to store the result somewhere
 f = open('systems/%s_Nbodyresults_inc.csv'%system, "a")
-f.write('%s, %d, %d, %e, %e, %e, %e, %e, %f, %f, %f, %f, %f, %f \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0,
+f.write('%s, %d, %d, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0,
                                                                      inc[0],inc[1],inc[2],Omega[0],Omega[1],Omega[2]))
 
