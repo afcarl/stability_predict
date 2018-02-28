@@ -203,7 +203,7 @@ if __name__ == '__main__':
     #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
     #systems = ["EPIC-210897587-1","EPIC-210897587-2"]
     #systems = ["K00041","K00085","K00271"]
-    systems = ["Kepler-431"]#, "LP-358-499", "Kepler-446"]
+    systems = ["LP-358-499", "Kepler-446"]
     
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
@@ -212,10 +212,12 @@ if __name__ == '__main__':
     norbits = 1e9          #number of orbits of innermost planet
     #norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
     
+    # generate new samples and jobs
 #    for system in systems:
 #        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys)
 #        print("Generated %d simulations for %s"%(n_sims*len(shadow_sys),system))
 
+    # use existing samples and create new jobs
     for system in systems:
         data = pd.read_csv("systems/%s_data.csv"%system)[0:n_sims]
         generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
