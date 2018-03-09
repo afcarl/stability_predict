@@ -20,10 +20,13 @@ def get_Ms():
     Ms["K00285"] = (1.2092, 0.02, 0.03);
     return Ms
 
-# units of R_sun
+# units of R_sun, taken from NASA exoplanet archive
 def get_Rs(system):
     Rs = {}
     Rs["Kepler-431"] = 1.092;       Rs["Kepler-446"] = 0.24;        Rs["LP-358-499"] = 0.47;
+    Rs["KOI-0085"] = 1.410;         Rs["KOI-0115"] = 0.894;         Rs["KOI-0152"] = 1.302;
+    Rs["KOI-0156"] = 0.667;         Rs["KOI-0168"] = 1.548;         Rs["KOI-0250"] = 0.512;
+    Rs["KOI-0314"] = 0.442;         Rs["KOI-1576"] = 0.814;         Rs["KOI-2086"] = 1.257;
     return Rs[system]
 
 # goes mean, upper, lower uncertainties

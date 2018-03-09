@@ -26,7 +26,7 @@ def find_unsubmitted_jobs(jobs_dir):
 
 ###############################
 
-jobs_dir = 'jobs/'
+jobs_dir = 'jobs/'      # need final backslash!
 
 files = glob.glob('%s/*'%jobs_dir)
 #files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them

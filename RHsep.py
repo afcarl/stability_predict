@@ -99,12 +99,20 @@ import numpy as np
 #m,a = [],[]
 #Ms = 0.540
 
-name = "KOI-94"
-P = [3.74, 10.42, 22.34, 54.32]
-#r = [1.55,1.95,1.64]
-m = [10.5*3e-6, 15.6*3e-6, 106*3e-6, 35*3e-6]
+#name = "KOI-94"
+#P = [3.74, 10.42, 22.34, 54.32]
+##r = [1.55,1.95,1.64]
+#m = [10.5*3e-6, 15.6*3e-6, 106*3e-6, 35*3e-6]
+#a = []
+#Ms = 0.540
+
+name = "sample"
+#P = [1, 1.82, 3.5, 6.7]
+#m = [12*3e-6, 12*3e-6, 12*3e-6, 12*3e-6]
+P = [1, 1.82, 3.5, 6.7]
+m = [40*3e-6, 40*3e-6, 40*3e-6, 40*3e-6]
 a = []
-Ms = 0.540
+Ms = 1
 
 ################Perfect test systems################
 #Kepler-431
@@ -200,17 +208,21 @@ if len(a)==0 and len(P)>0:
     a = ((P/365)**2 * Ms)**(1./3.)
 
 #hill radii
-RH = []
-for i in range(len(a)-1):
-    hill = a[i]*((m[i] + m[i+1])/(3*Ms))**(1./3.)
-    RH.append(hill)
+Np = len(a)
+RHmut, RH = np.zeros((Np,Np)), []
+for i in range(Np-1):
+    RH.append(a[i]*(m[i]/(3*Ms))**(1./3.))
+    for j in range(i+1,Np):
+        RHmut[i][j] = 0.5*(a[i]+a[j])*((m[i] + m[j])/(3*Ms))**(1./3.)
 
 #separations
 print ""
 print "%s:"%name
-for i in range(len(a)-1):
-    asep = (a[i+1] - a[i]) /RH[i]
-    if len(P) > 0:
-        print "Planets %d and %d are separated by %f mutual Hill radii, with a period ratio of %f"%(i+1, i, asep, P[i+1]/P[i])
-    else:
-        print "Planets %d and %d are separated by %f mutual Hill radii"%(i+1, i, asep)
+for i in range(Np-1):
+    for j in range(i+1, Np):
+        asep = (a[j] - a[i]) /RHmut[i][j]
+        asep2 = (a[j] - a[i]) /RH[i]
+        if len(P) > 0:
+            print "Planets %d and %d are separated by %f mutual Hill radii, with a period ratio of %f"%(j, i, asep, P[j]/P[i])
+        else:
+            print "Planets %d and %d are separated by %f mutual Hill radii"%(j, i, asep)

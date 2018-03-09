@@ -200,10 +200,11 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
 
 ####################################################
 if __name__ == '__main__':
-    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0250","KOI-0314","KOI-0523","KOI-0738","KOI-1270","KOI-1576","KOI-2086"]
+    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086"]
+    #systems = ["KOI-0523","KOI-0738","KOI-1270"]
     #systems = ["EPIC-210897587-1","EPIC-210897587-2"]
     #systems = ["K00041","K00085","K00271"]
-    systems = ["LP-358-499", "Kepler-446"]
+    #systems = ["LP-358-499", "Kepler-446"]
     
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
