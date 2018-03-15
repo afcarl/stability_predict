@@ -72,6 +72,11 @@ def make_sim(d, system, inc, Omega, Nplanets=3):
         hill = a*(m/(3*Ms))**(1./3.)
         sim.add(m=m, a=a, e=e, omega=w, M=M, inc=inc[i-1], Omega=Omega[i-1], r=hill/2.) # G=1 units!
     sim.move_to_com()
+
+    #timestep
+    dt = 2.*math.sqrt(3)/100.
+    P1 = sim.particles[1].P
+    sim.dt = dt*P1              # ~3% orbital period
     return sim
 
 if __name__ == '__main__':
@@ -96,16 +101,14 @@ if __name__ == '__main__':
         kicksize=1.e-11
         sim.particles[2].x += kicksize
 
-    #timestep
-    dt = 2.*math.sqrt(3)/100.
+    # max sim time
     P1 = sim.particles[1].P
-    sim.dt = dt*P1              # ~3% orbital period
     tmax = maxorbs*P1
 
-    #save simulation archive
+    # save simulation archive
     sim.initSimulationArchive('output/%s_SA_inc.bin'%name, interval=tmax/1000.)     #save checkpoints.
 
-    #simulate
+    # simulate
     E0 = sim.calculate_energy()
     t0 = time.time()
     print("starting simulation")
