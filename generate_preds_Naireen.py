@@ -51,12 +51,12 @@ if __name__ == "__main__":
     systems = ["Kepler-431"]#,"Kepler-446","KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","LP-358-499"]
 
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
-    #dir_SA = "simulation_archives/%s_inc"%system   #ACI-b
-    dir_SA = "simulation_archives"
 
     for system in systems:
+        dir_SA = "simulation_archives/%s_inc"%system   #ACI-b
+        #dir_SA = "simulation_archives"
+        
         df = get_features(system, dir_SA)
-
         X = xgb.DMatrix(df[model_features])
         preds = model.predict(X)
         print(preds)
