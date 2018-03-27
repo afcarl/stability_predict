@@ -8,4 +8,4 @@ cd $PBS_O_WORKDIR
 module load python/3.3.2
 export PATH="/storage/work/ajs725/conda/install/bin:$PATH"
 source activate stability
-python generate_preds_Naireen.py
+python generate_preds_Naireen.py > generate_preds_out.txt
