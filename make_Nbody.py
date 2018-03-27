@@ -166,12 +166,12 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
             if N_columns < 15:
                 print("**The number of planets in system %s is %f, *not* generating jobs**"%(system,N_columns/5.))
                 return 0
-            elif N_columns > 15:
+            elif N_columns >= 15:
                 print("The number of planets in system %s is %f, generating jobs"%(system,N_columns/5.))
                 orb_params = ["m1","T1","P1","h1","k1","m2","T2","P2",
                               "h2","k2","m3","T3","P3","h3","k3"]
             # load full posterior
-            data = pd.read_csv("systems/data_files/%s.dat"%system, names=orb_params, sep="\s+")
+            data = pd.read_csv("systems/data_files/jontoff-hutter/%s.dat"%system, names=orb_params, sep="\s+")
 
             # select random subset
             rN = list(range(len(data)))
@@ -183,14 +183,29 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
 
         # add stellar mass to dataframe
         data["Ms"] = star_mass
-            
-    #*****make a function later that double checks that each new drawn sample isn't a copy of a previous one?
 
     # Save data to csv
     incl_header=True
     data_file = "%s/%s_data.csv"%(dat_dir, system)
-    # if file already exists, start current index number at previous entry number
+    # if file already exists
     if os.path.isfile(data_file) == True:
+        # check that each new drawn sample isn't a copy of a previous one
+        data_exist = pd.read_csv(data_file, index_col=0)
+        data_exist = data_exist.as_matrix()
+        i = 0
+        duplicate_found = False
+        while i < len(data):
+            diff = data_exist - data.iloc[i].values
+            if np.any(np.sum(np.abs(diff), axis=1) < 1e-2): # duplicate entry
+                print("dropped row, duplicate of existing sample:")
+                print(data.iloc[i].values)
+                data = data.drop(data.index[i])
+                duplicate_found = True
+            else:
+                i += 1
+        if duplicate_found:
+            data = data.reset_index(drop=True)
+        # start current index number at previous entry number
         data.index += pd.read_csv(data_file).index[-1] + 1
         incl_header=False
     data.to_csv(data_file, mode="a", header=incl_header)
@@ -200,7 +215,8 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
 
 ####################################################
 if __name__ == '__main__':
-    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086"]
+    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086"]
+    systems = ["KOI-2086"]
     #systems = ["KOI-0523","KOI-0738","KOI-1270"]
     #systems = ["EPIC-210897587-1","EPIC-210897587-2"]
     #systems = ["K00041","K00085","K00271"]
@@ -209,17 +225,17 @@ if __name__ == '__main__':
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
     n_sims = 1000           #number of sims created
-    shadow_sys = [0,1]        #if no shadow systems, set shadow_sys = [0]
+    shadow_sys = [0,1]      #if no shadow systems, set shadow_sys = [0]
     norbits = 1e9          #number of orbits of innermost planet
     #norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
     
     # generate new samples and jobs
-#    for system in systems:
-#        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys)
-#        print("Generated %d simulations for %s"%(n_sims*len(shadow_sys),system))
+    for system in systems:
+        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys)
+        print("Generated %d simulations for %s"%(n_sims*len(shadow_sys),system))
 
     # use existing samples and create new jobs
-    for system in systems:
-        data = pd.read_csv("systems/%s_data.csv"%system)[0:n_sims]
-        generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
-        print("Generated jobs for %d simulations for %s"%(n_sims*len(shadow_sys),system))
+#    for system in systems:
+#        data = pd.read_csv("systems/%s_data.csv"%system)[0:n_sims]
+#        generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
+#        print("Generated jobs for %d simulations for %s"%(n_sims*len(shadow_sys),system))
