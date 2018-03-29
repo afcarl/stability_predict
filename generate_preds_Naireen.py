@@ -37,7 +37,7 @@ def get_features(system, dir_SA, ext):
         for index, row in Nbodydata.iterrows():
             #try:
             dir_sim = '%s/%s_SA%s.bin'%(dir_SA, row['name'], ext)
-            features = gen.system(dir_sim, row['sim.time'], row['P1'], index)[model_features]
+            features = gen.system(dir_sim, row['sim_time'], row['P1'], index)[model_features]
             features['name'] = row['name']
             features['id'] = row['id']
             features['shadow'] = row['shadow']
