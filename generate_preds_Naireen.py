@@ -18,11 +18,11 @@ model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_
                   'std_beta23','min_beta23','max_beta23']
 
 ############################
-def get_features(system, dir_SA):
+def get_features(system, dir_SA, ext):
     #data = pd.read_csv("systems/%s_data.csv"%system)
     Nbodydata = pd.read_csv("systems/%s_Nbodyresults_inc.csv"%system,
-                            names=["name","id","shadow","maxorbs","P1","sim.time","Eerr",
-                                   "CPU.time","inc1","inc2","inc3","Omega1","Omega2","Omega3"])
+                            names=["name","id","shadow","maxorbs","P1","sim_time","Eerr",
+                                   "CPU_time","inc1","inc2","inc3","Omega1","Omega2","Omega3"])
                                    
     try:
         df = pd.read_csv('systems/%s_features_inc.csv'%system)
@@ -43,21 +43,21 @@ def get_features(system, dir_SA):
                 df = pd.concat([df, features])
             except:
                 pass
-            df.to_csv('systems/%s_features_inc.csv'%system)
+            df.to_csv('systems/%s_features%s.csv'%(system, ext))
     return df
 
 #########Parameters#########
 if __name__ == "__main__":
     systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0152","KOI-0156",
                "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
-
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
+    ext = "_inc"    # ext can be '_inc' or ''
 
     for system in systems:
-        dir_SA = "simulation_archives/%s_inc"%system   #ACI-b
+        dir_SA = "simulation_archives/%s%s"%(system, ext)   #ACI-b
         #dir_SA = "simulation_archives"
         
-        df = get_features(system, dir_SA)
+        df = get_features(system, dir_SA, ext)
         X = xgb.DMatrix(df[model_features])
         preds = model.predict(X)
         print(system)
