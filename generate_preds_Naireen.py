@@ -35,16 +35,16 @@ def get_features(system, dir_SA, ext):
         mf += ['name','id','shadow']
         df = pd.DataFrame(columns=mf)
         for index, row in Nbodydata.iterrows():
-            try:
-                dir_sim = '%s/%s_SA%s.bin'%(dir_SA, row['name'], ext)
-                features = gen.system(dir_sim, row['sim.time'], row['P1'], index)[model_features]
-                features['name'] = row['name']
-                features['id'] = row['id']
-                features['shadow'] = row['shadow']
-                df = pd.concat([df, features])
-            except:
-                pass
-            df.to_csv('systems/%s_features%s.csv'%(system, ext))
+            #try:
+            dir_sim = '%s/%s_SA%s.bin'%(dir_SA, row['name'], ext)
+            features = gen.system(dir_sim, row['sim.time'], row['P1'], index)[model_features]
+            features['name'] = row['name']
+            features['id'] = row['id']
+            features['shadow'] = row['shadow']
+            df = pd.concat([df, features])
+                    #except:
+                    #    pass
+        df.to_csv('systems/%s_features%s.csv'%(system, ext))
     return df
 
 #########Parameters#########
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     ext = ""    # ext can be '_inc' or ''
 
     for system in systems:
-        dir_SA = "simulation_archives/%s%s"%(system, ext)   #ACI-b
+        dir_SA = "simulation_archives_bubbles/%s%s"%(system, ext)   #ACI-b
         #dir_SA = "simulation_archives"
         
         df = get_features(system, dir_SA, ext)
