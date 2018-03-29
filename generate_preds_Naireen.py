@@ -20,12 +20,13 @@ model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_
 ############################
 def get_features(system, dir_SA, ext):
     #data = pd.read_csv("systems/%s_data.csv"%system)
-    Nbodydata = pd.read_csv("systems/%s_Nbodyresults_inc.csv"%system,
-                            names=["name","id","shadow","maxorbs","P1","sim_time","Eerr",
-                                   "CPU_time","inc1","inc2","inc3","Omega1","Omega2","Omega3"])
+    names = ["name","id","shadow","maxorbs","P1","sim_time","Eerr","CPU_time"]
+    if ext == "_inc":
+        names += ["inc1","inc2","inc3","Omega1","Omega2","Omega3"]
+    Nbodydata = pd.read_csv("systems/%s_Nbodyresults%s.csv"%(system, ext), names=names)
                                    
     try:
-        df = pd.read_csv('systems/%s_features_inc.csv'%system)
+        df = pd.read_csv('systems/%s_features%s.csv'%(system, ext))
         print('***Loaded predictions for system %s.'%system)
     except:
         # make data frame
