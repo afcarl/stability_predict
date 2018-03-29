@@ -35,7 +35,7 @@ def get_features(system, dir_SA, ext):
         df = pd.DataFrame(columns=mf)
         for index, row in Nbodydata.iterrows():
             try:
-                dir_sim = '%s/%s_SA_inc.bin'%(dir_SA, row['name'])
+                dir_sim = '%s/%s_SA%s.bin'%(dir_SA, row['name'], ext)
                 features = gen.system(dir_sim, row['sim.time'], row['P1'], index)[model_features]
                 features['name'] = row['name']
                 features['id'] = row['id']
@@ -48,10 +48,10 @@ def get_features(system, dir_SA, ext):
 
 #########Parameters#########
 if __name__ == "__main__":
-    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0152","KOI-0156",
+    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
                "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
-    ext = "_inc"    # ext can be '_inc' or ''
+    ext = ""    # ext can be '_inc' or ''
 
     for system in systems:
         dir_SA = "simulation_archives/%s%s"%(system, ext)   #ACI-b
