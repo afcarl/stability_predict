@@ -49,10 +49,11 @@ def get_features(system, dir_SA, ext):
 
 #########Parameters#########
 if __name__ == "__main__":
-    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
-               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
+#    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
+#               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
+    systems = ["KOI-0115", "KOI-0314"]
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
-    ext = ""    # ext can be '_inc' or ''
+    ext = ""    # ext can be '_inc' or '' or '_incproper'
 
     for system in systems:
         dir_SA = "simulation_archives_bubbles/%s%s"%(system, ext)   #ACI-b
