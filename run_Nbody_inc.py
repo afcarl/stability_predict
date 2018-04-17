@@ -71,7 +71,7 @@ def make_sim(d, system, inc, Omega, Nplanets=3):
             sys.exit(1)
         hill = a*(m/(3*Ms))**(1./3.)
         #sim.add(m=m, a=a, e=e, omega=w, M=M, inc=inc[i-1], Omega=Omega[i-1], r=hill/2.) # G=1 units!
-        sim.add(m=m, a=a, e=e, pomega=w, l=M+w, Omega=Omega[i-1], inc=inc[i-1], r=hill/2.) # G=1 units!
+        sim.add(m=m, a=a, e=e, pomega=w, l=M+w, Omega=Omega[i-1], inc=inc[i-1], r=hill) # G=1 units!
     sim.move_to_com()
 
     #timestep
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     tmax = maxorbs*P1
 
     # save simulation archive
-    sim.initSimulationArchive('output/%s_SA_incproper.bin'%name, interval=tmax/1000.)     #save checkpoints.
+    sim.initSimulationArchive('output/%s_inc_SA.bin'%name, interval=tmax/1000.)     #save checkpoints.
 
     # simulate
     E0 = sim.calculate_energy()
@@ -118,11 +118,12 @@ if __name__ == '__main__':
     except:
         pass
     print("finished simulation")
+    sim.save('output/%s_inc_final.bin'%name)
     Ef = sim.calculate_energy()
     Eerr = abs((Ef-E0)/E0)
 
     #need to store the result somewhere
-    f = open('systems/%s_Nbodyresults_incproper.csv'%system, 'a')
+    f = open('systems/%s_Nbodyresults_final.csv'%system, 'a')
     f.write('%s, %d, %d, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e \n'%(name,id,shadow,maxorbs,P1,sim.t,Eerr,time.time()-t0,
                                                                          inc[0],inc[1],inc[2],Omega[0],Omega[1],Omega[2]))
     f.close()

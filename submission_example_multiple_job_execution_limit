@@ -1,0 +1,13 @@
+#!/bin/bash -l
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=72:00:00
+#PBS -l pmem=2gb                ## Requests 1 gigabytes of memory per process
+#PBS -A ebf11_a_g_sc_default    ## Specifies the allocation. Use -A open for open queue
+#PBS -j oe                      ## Requests that regular output and terminal output go to the same file
+#PBS -t 994-1003%2
+
+cd $PBS_O_WORKDIR
+export PATH="/storage/work/ajs725/conda/install/bin:$PATH"
+source activate stability
+
+python run_Nbody.py Kepler-446 ${PBS_ARRAYID} 0.220000 780.00 1000000000 3 0 Kepler-446_1e9orbits_id${PBS_ARRAYID}_shadow0 >& batch.output_${PBS_ARRAYID}

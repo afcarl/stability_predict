@@ -21,7 +21,7 @@ model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_
 def get_features(system, dir_SA, ext):
     #data = pd.read_csv("systems/%s_data.csv"%system)
     names = ["name","id","shadow","maxorbs","P1","sim_time","Eerr","CPU_time"]
-    if ext == "_inc":
+    if "_inc" in ext:
         names += ["inc1","inc2","inc3","Omega1","Omega2","Omega3"]
     Nbodydata = pd.read_csv("systems/%s_Nbodyresults%s.csv"%(system, ext), names=names)
                                    
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 #               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
     systems = ["KOI-0115", "KOI-0314"]
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
-    ext = ""    # ext can be '_inc' or '' or '_incproper'
+    ext = "_incproper"    # ext can be '_inc', '_incproper' or ""
 
     for system in systems:
         dir_SA = "simulation_archives_bubbles/%s%s"%(system, ext)   #ACI-b
