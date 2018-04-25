@@ -1,11 +1,12 @@
 # The purpose of this code is to generate predictions from the data so that we can ultimately compare to the Nbody results
+# This was previously generate_preds_Naireen.py (i.e. this is the good code).
 
 import pickle
 import rebound
 import numpy as np
 import pandas as pd
 import run_Nbody_inc as Nbod
-import generatefeatures as gen
+import utils.generatefeatures as gen
 import xgboost as xgb
 
 model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_window10_a1',

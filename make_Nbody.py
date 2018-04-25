@@ -61,7 +61,7 @@ def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci
                 sh_script_name = "%s%s"%(jobs_dir, job_name)
                 if cluster_type == 'sunnyvale':
                     with open(sh_script_name, 'w') as f:
-                        f_head = open('job_header_sunnyvale','r')
+                        f_head = open('utils/job_header_sunnyvale','r')
                         f.write(f_head.read())
                         f_head.close()
                         f.write('#PBS -N %s \n'%job_name)
@@ -72,7 +72,7 @@ def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci
                         f.close()
                 elif cluster_type == 'aci-b':
                     with open(sh_script_name, 'w') as f:
-                        f_head = open('job_header_aci-b','r')
+                        f_head = open('utils/job_header_aci-b','r')
                         f.write(f_head.read())
                         f_head.close()
                         #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
@@ -80,7 +80,7 @@ def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci
                         f.close()
 
 ########### Main Routine ###########
-def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
+def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, gen_jobs, Np=3):
     
     if n_sims % 2 == 1:
         raise Exception("n_sims must be even for sampling purposes")
@@ -211,7 +211,8 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, Np=3):
     data.to_csv(data_file, mode="a", header=incl_header)
 
     # generate actual jobs
-    generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
+    if gen_jobs:
+        generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
 
 ####################################################
 if __name__ == '__main__':
@@ -224,14 +225,15 @@ if __name__ == '__main__':
     
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
-    n_sims = 1000           #number of sims created
+    gen_jobs = 0            #if 0, just generate samples, but not physical jobs
+    n_sims = 2000           #number of sims created
     shadow_sys = [0,1]      #if no shadow systems, set shadow_sys = [0]
     norbits = 1e9          #number of orbits of innermost planet
     #norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"
     
     # generate new samples and jobs
     for system in systems:
-        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys)
+        main(system,dat_dir,jobs_dir,n_sims,norbits,shadow_sys,gen_jobs)
         print("Generated %d simulations for %s"%(n_sims*len(shadow_sys),system))
 
     # use existing samples and create new jobs

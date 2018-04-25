@@ -6,4 +6,4 @@
 #PBS -j oe                      ## Requests that regular output and terminal output go to the same file
 cd $PBS_O_WORKDIR
 export PATH="/storage/work/ajs725/conda/install/bin:$PATH"
-source activate stability
+source activate stability3.5.2
