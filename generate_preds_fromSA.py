@@ -21,12 +21,11 @@ model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_
 
 ############################
 def get_features(system, dir_SA):
-
     try:
         df = pd.read_csv('systems/%s_features.csv'%system)
         print('***Loaded predictions for system %s.'%system)
     except:
-        SAs = glob.glob("%s*_SA.bin"%dir_SA)
+        SAs = glob.glob("%s/*_SA.bin"%dir_SA)
         
         # make data frame
         print('***Couldnt retrieve predictions for system %s, generating from scratch***'%system)
@@ -52,7 +51,7 @@ def get_features(system, dir_SA):
 if __name__ == "__main__":
     #    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
     #               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
-    systems = ["Ari_Fake_10_0.1_r1/"]
+    systems = ["Ari_Fake_10_0.1_r1"]
     ext = "_SA"
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
     
