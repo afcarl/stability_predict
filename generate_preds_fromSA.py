@@ -34,7 +34,7 @@ def get_features(system, dir_SA):
         df = pd.DataFrame(columns=mf)
         for dir_sim in SAs:
             basename = os.path.basename(dir_sim.split('_SA.bin')[0])
-            dir_final = basename + '_final.bin'
+            dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
             P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
             sim_time = rebound.SimulationArchive(dir_final)[-1].t
             try:
