@@ -43,7 +43,7 @@ def generate_features(sim, iteration, maxorbs=10000, Nout=100, window=10):
     e = np.zeros((sim.N,Nout))
     inc = np.zeros((sim.N,Nout))
     
-    beta12 = np.zeros( Nout)
+    beta12 = np.zeros(Nout)
     beta23 = np.zeros(Nout)
     
     Rhill12 = ps[1].a*((ps[1].m+ps[2].m)/3.)**(1./3.)
@@ -81,7 +81,6 @@ def generate_features(sim, iteration, maxorbs=10000, Nout=100, window=10):
         features["std_"+string] = std
         features["min_"+string] = min(feature)
         features["max_"+string] = max(feature)
-
 
     for j in [1,2,3]:
         for string, feature in [('a', a), ('e', e), ('inc', inc)]:
@@ -124,15 +123,15 @@ def generate_features(sim, iteration, maxorbs=10000, Nout=100, window=10):
     return pd.DataFrame(features, index=[iteration])
 
 ###############################
-def system(dir, sim_time, P1, index):
+def system(dir, sim_time, P1, index, max_sim_time=1e9):
     SA = rebound.SimulationArchive(dir)
     E0 = SA[0].calculate_energy()
     features = generate_features(SA[0], index)
-    features['Stable'] = 1 if np.isclose(sim_time/P1, 1e9) else 0
+    features['Stable'] = 1 if np.isclose(sim_time/P1, max_sim_time) else 0
     #print(sim_time/SA[0].particles[1].P, sim_time/P1, features['Stable'].values, dir) #disagreement.. why?
     features['instability_time'] = sim_time
     features['Rel_Eerr'] = abs((SA[-1].calculate_energy()-E0)/E0)
-    return features    
+    return features
 
 from rebound import InterruptiblePool
 def dorows(params):

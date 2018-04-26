@@ -1,13 +1,14 @@
-# The purpose of this code is to generate predictions from the data so that we can ultimately compare to the Nbody results
-# This was previously generate_preds_Naireen.py (i.e. this is the good code).
+# This script generates predictions straight from the Simulation Archives, no Nbody csv files.
 
 import pickle
 import rebound
 import numpy as np
 import pandas as pd
+import glob
 import run_Nbody_inc as Nbod
 import utils.generatefeatures as gen
 import xgboost as xgb
+import os
 
 model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_window10_a1',
                   'norm_max_window10_a1','norm_std_a2', 'norm_max_a2', 'norm_std_window10_a2',
@@ -19,29 +20,28 @@ model_features = ['avg_iH1', 'avg_iH2', 'norm_std_a1', 'norm_max_a1', 'norm_std_
                   'std_beta23','min_beta23','max_beta23']
 
 ############################
-def get_features(system, dir_SA, ext):
+def get_features(system, dir_SA):
+
     try:
-        df = pd.read_csv('systems/%s_features%s.csv'%(system, ext))
+        df = pd.read_csv('systems/%s_features.csv'%system)
         print('***Loaded predictions for system %s.'%system)
     except:
-        #data = pd.read_csv("systems/%s_data.csv"%system)
-        names = ["name","id","shadow","maxorbs","P1","sim_time","Eerr","CPU_time"]
-        if "_inc" in ext:
-            names += ["inc1","inc2","inc3","Omega1","Omega2","Omega3"]
-        Nbodydata = pd.read_csv("systems/%s_Nbodyresults%s.csv"%(system, ext), names=names)
-    
+        SAs = glob.glob("%s*_SA.bin"%dir_SA)
+        
         # make data frame
         print('***Couldnt retrieve predictions for system %s, generating from scratch***'%system)
         mf = list(model_features)  # copy
-        mf += ['name','id','shadow']
+        mf += ['name','id']
         df = pd.DataFrame(columns=mf)
-        for index, row in Nbodydata.iterrows():
+        for dir_sim in SAs:
+            basename = os.path.basename(dir_sim.split('_SA.bin')[0])
+            dir_final = basename + '_final.bin'
+            P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
+            sim_time = rebound.SimulationArchive(dir_final)[-1].t
             try:
-                dir_sim = '%s/%s_SA%s.bin'%(dir_SA, row['name'], ext)
-                features = gen.system(dir_sim, row['sim_time'], row['P1'], index)[model_features]
-                features['name'] = row['name']
-                features['id'] = row['id']
-                features['shadow'] = row['shadow']
+                features = gen.system(dir_sim, sim_time, P1, index)[model_features]
+                features['name'] = basename
+                features['id'] = basename.split('_')[-1]
                 df = pd.concat([df, features])
             except:
                 pass
@@ -50,19 +50,17 @@ def get_features(system, dir_SA, ext):
 
 #########Parameters#########
 if __name__ == "__main__":
-#    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
-#               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
-    systems = ["KOI-0115", "KOI-0314"]
+    #    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
+    #               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
+    systems = ["Ari_Fake_10_0.1_r1/"]
+    ext = "_SA"
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
-    ext = "_incproper"    # ext can be '_inc', '_incproper' or ""
-
+    
     for system in systems:
-        dir_SA = "simulation_archives_bubbles/%s%s"%(system, ext)   #ACI-b
-        #dir_SA = "simulation_archives"
+        dir_SA = "/storage/work/cjg66/ML-Stability/output/Ari_Fake_10_0.1_r1/%s"%system   #ACI-b
         
-        df = get_features(system, dir_SA, ext)
+        df = get_features(system, dir_SA)
         X = xgb.DMatrix(df[model_features])
         preds = model.predict(X)
         print(system)
         print(preds)
-
