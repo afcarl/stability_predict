@@ -52,11 +52,10 @@ if __name__ == "__main__":
     #    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
     #               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
     systems = ["Ari_Fake_10_0.1_r1"]
-    ext = "_SA"
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
     
     for system in systems:
-        dir_SA = "/storage/work/cjg66/ML-Stability/output/Ari_Fake_10_0.1_r1/%s"%system   #ACI-b
+        dir_SA = "/storage/work/cjg66/ML-Stability/output/%s"%system   #ACI-b
         
         df = get_features(system, dir_SA)
         X = xgb.DMatrix(df[model_features])
