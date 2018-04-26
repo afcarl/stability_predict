@@ -32,7 +32,7 @@ def get_features(system, dir_SA):
         mf = list(model_features)  # copy
         mf += ['name','id']
         df = pd.DataFrame(columns=mf)
-        for index, dir_sim in enuerate(SAs):
+        for index, dir_sim in enumerate(SAs):
             basename = os.path.basename(dir_sim.split('_SA.bin')[0])
             dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
             P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
