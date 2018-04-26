@@ -44,7 +44,7 @@ def get_features(system, dir_SA):
                 df = pd.concat([df, features])
             except:
                 pass
-        df.to_csv('systems/%s_features%s.csv'%(system, ext))
+        df.to_csv('systems/%s_features.csv'%(system))
     return df
 
 #########Parameters#########
