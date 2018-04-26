@@ -30,17 +30,20 @@ def get_features(system, dir_SA):
         # make data frame
         print('***Couldnt retrieve predictions for system %s, generating from scratch***'%system)
         mf = list(model_features)  # copy
-        mf += ['name','id']
+        mf += ['instability_time','Rel_Eerr','P1','name','id','Stable']
         df = pd.DataFrame(columns=mf)
-        for index, dir_sim in enumerate(SAs):
-            basename = os.path.basename(dir_sim.split('_SA.bin')[0])
-            dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
-            P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
-            sim_time = rebound.SimulationArchive(dir_final)[-1].t
-            features = gen.system(dir_sim, sim_time, P1, index)[model_features]
-            features['name'] = basename
-            features['id'] = basename.split('_')[-1]
-            df = pd.concat([df, features])
+        for index, dir_sim in enumerate(SAs[0:10]):
+            try:
+                basename = os.path.basename(dir_sim.split('_SA.bin')[0])
+                dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
+                P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
+                sim_time = rebound.SimulationArchive(dir_final)[-1].t
+                features = gen.system(dir_sim, sim_time, P1, index)[model_features]
+                features['name'] = basename
+                features['id'] = basename.split('_')[-1]
+                df = pd.concat([df, features])
+            except:
+                pass
         df.to_csv('systems/%s_features.csv'%system)
     return df
 
