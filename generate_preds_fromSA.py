@@ -32,7 +32,7 @@ def get_features(system, dir_SA):
         mf = list(model_features)  # copy
         mf += ['instability_time','Rel_Eerr','P1','name','id','Stable']
         df = pd.DataFrame(columns=mf)
-        for index, dir_sim in enumerate(SAs[0:10]):
+        for index, dir_sim in enumerate(SAs):
             try:
                 basename = os.path.basename(dir_sim.split('_SA.bin')[0])
                 dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
