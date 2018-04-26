@@ -37,14 +37,11 @@ def get_features(system, dir_SA):
             dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
             P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
             sim_time = rebound.SimulationArchive(dir_final)[-1].t
-            try:
-                features = gen.system(dir_sim, sim_time, P1, index)[model_features]
-                features['name'] = basename
-                features['id'] = basename.split('_')[-1]
-                df = pd.concat([df, features])
-            except:
-                pass
-        df.to_csv('systems/%s_features.csv'%(system))
+            features = gen.system(dir_sim, sim_time, P1, index)[model_features]
+            features['name'] = basename
+            features['id'] = basename.split('_')[-1]
+            df = pd.concat([df, features])
+        df.to_csv('systems/%s_features.csv'%system)
     return df
 
 #########Parameters#########
