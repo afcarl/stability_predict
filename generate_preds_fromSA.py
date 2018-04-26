@@ -30,7 +30,7 @@ def get_features(system, dir_SA):
         # make data frame
         print('***Couldnt retrieve predictions for system %s, generating from scratch***'%system)
         mf = list(model_features)  # copy
-        mf += ['name','id','Stable','instability_time','Rel_Eerr','P1']
+        mf += ['name','id','Stable','instability_time','Rel_Eerr','P1','sim_time']
         df = pd.DataFrame(columns=mf)
         for index, dir_sim in enumerate(SAs):
             try:

@@ -128,6 +128,7 @@ def system(dir, sim_time, P1, index, max_sim_time=1e9):
     E0 = SA[0].calculate_energy()
     features = generate_features(SA[0], index)
     features['Stable'] = 1 if np.isclose(sim_time/P1, max_sim_time) else 0
+    features['sim_time'] = sim_time
     #print(sim_time/SA[0].particles[1].P, sim_time/P1, features['Stable'].values, dir) #disagreement.. why?
     features['instability_time'] = sim_time
     features['Rel_Eerr'] = abs((SA[-1].calculate_energy()-E0)/E0)
