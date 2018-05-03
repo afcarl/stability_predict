@@ -29,7 +29,7 @@ def get_Rs(system):
     Rs["KOI-0085"] = 1.410;         Rs["KOI-0115"] = 0.894;         Rs["KOI-0152"] = 1.302;
     Rs["KOI-0156"] = 0.667;         Rs["KOI-0168"] = 1.548;         Rs["KOI-0250"] = 0.512;
     Rs["KOI-0314"] = 0.442;         Rs["KOI-1576"] = 0.814;         Rs["KOI-2086"] = 1.257;
-    Ms["EPIC-210897587-2"] = 0.526;
+    Rs["EPIC-210897587-2"] = 0.526;
     return Rs[system]
 
 # goes mean, upper, lower uncertainties

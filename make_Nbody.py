@@ -92,7 +92,7 @@ def generate_jobs_array(data, system, jobs_dir, norbits, shadow_sys, cluster='Er
                 f.write('#PBS -A ebf11_a_g_sc_default\n')
             else:
                 f.write('#PBS -A cyberlamp -l qos=cl_open\n')
-            f.write('#PBS -t 0-%d%%%d\n\n'%(len(data), n_simultaneous))
+            f.write('#PBS -t 0-%d%%%d\n\n'%(len(data)-1, n_simultaneous))
             f.write('cd $PBS_O_WORKDIR\n')
             f.write('export PATH="/storage/work/ajs725/conda/install/bin:$PATH"\n')
             f.write('source activate stability3.5.2\n\n')
