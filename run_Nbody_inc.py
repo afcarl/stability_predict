@@ -119,6 +119,7 @@ if __name__ == '__main__':
     try:
         sim.integrate(tmax)         # will stop if collision occurs
     except:
+        print("interrupted sim")
         sim.simulationarchive_snapshot('output/%s_inc_SA_final.bin'%name)
     print("finished simulation")
     Ef = sim.calculate_energy()
