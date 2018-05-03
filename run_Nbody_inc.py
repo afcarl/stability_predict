@@ -91,7 +91,7 @@ if __name__ == '__main__':
     name = sys.argv[6]
 
     #load data
-    data = pd.read_csv('systems/%s_data.csv'%system)
+    data = pd.read_csv('systems/%s_data_final.csv'%system)
     d = data.iloc[id]
 
     #make sim

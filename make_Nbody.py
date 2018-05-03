@@ -244,7 +244,8 @@ if __name__ == '__main__':
 #               "KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]
     #4p systems = ["KOI-0152","KOI-0250"]
     #systems = ["KOI-0085","KOI-0115","KOI-0156","KOI-0168","KOI-0314"]      #cyberlamp
-    systems = ["KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]  #Eric allocation
+    systems = ["EPIC-210897587-2"]
+    #systems = ["KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]  #Eric allocation
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
     gen_jobs = "array"      #"single" jobs, "array" jobs, or make no jobs
