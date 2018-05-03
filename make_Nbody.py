@@ -52,32 +52,52 @@ def draw_e(Ms, P1, P2, P3, m1, m2, m3):
     e3 = min(10.**uniform(logemin3, logemax3), 1.)
     return e1, e2, e3
 
-########### Generate Jobs ###########
+########### Generate Jobs Singles ###########
 def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci-b', Np=3):
-        for shadow in shadow_sys:
-            for sample in data.iterrows():
-                id_ = sample[0]             #id number of sample
-                job_name = "%s_%.1eorbits_id%d_shadow%d"%(system, norbits, id_, shadow)
-                sh_script_name = "%s%s"%(jobs_dir, job_name)
-                if cluster_type == 'sunnyvale':
-                    with open(sh_script_name, 'w') as f:
-                        f_head = open('utils/job_header_sunnyvale','r')
-                        f.write(f_head.read())
-                        f_head.close()
-                        f.write('#PBS -N %s \n'%job_name)
-                        f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
-                        f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
-                        f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
-                        f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
-                        f.close()
-                elif cluster_type == 'aci-b':
-                    with open(sh_script_name, 'w') as f:
-                        f_head = open('utils/job_header_aci-b','r')
-                        f.write(f_head.read())
-                        f_head.close()
-                        #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
-                        f.write('python run_Nbody_inc.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
-                        f.close()
+    for shadow in shadow_sys:
+        for sample in data.iterrows():
+            id_ = sample[0]             #id number of sample
+            job_name = "%s_%.1eorbits_id%d_shadow%d"%(system, norbits, id_, shadow)
+            sh_script_name = "%s%s"%(jobs_dir, job_name)
+            if cluster_type == 'sunnyvale':
+                with open(sh_script_name, 'w') as f:
+                    f_head = open('utils/job_header_sunnyvale','r')
+                    f.write(f_head.read())
+                    f_head.close()
+                    f.write('#PBS -N %s \n'%job_name)
+                    f.write('# EVERYTHING ABOVE THIS COMMENT IS NECESSARY, SHOULD ONLY CHANGE nodes,ppn,walltime and my_job_name VALUES\n')
+                    f.write('cd $PBS_O_WORKDIR\n')      #This will be the home stability_predict directory
+                    f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
+                    f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                    f.close()
+            elif cluster_type == 'aci-b':
+                with open(sh_script_name, 'w') as f:
+                    f_head = open('utils/job_header_aci-b','r')
+                    f.write(f_head.read())
+                    f_head.close()
+                    #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                    f.write('python run_Nbody_inc.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
+                    f.close()
+
+def generate_jobs_array(data, system, jobs_dir, norbits, shadow_sys, cluster='Eric', n_simultaneous=50):
+    for shadow in shadow_sys:
+        N_data = len(data)
+        job_name = "%s_%.1eorbits_shadow%d_array"%(system, norbits, shadow)
+        sh_script_name = "%s%s.pbs"%(jobs_dir, job_name)
+        with open(sh_script_name, 'w') as f:
+            f_head = open('utils/job_header_multi_job_exec','r')
+            f.write(f_head.read())
+            f_head.close()
+            if cluster == 'Eric':
+                f.write('#PBS -A ebf11_a_g_sc_default\n')
+            else:
+                f.write('#PBS -A cyberlamp -l qos=cl_open\n')
+            f.write('#PBS -t 0-%d%%%d\n\n'%(len(data), n_simultaneous))
+            f.write('cd $PBS_O_WORKDIR\n')
+            f.write('export PATH="/storage/work/ajs725/conda/install/bin:$PATH"\n')
+            f.write('source activate stability3.5.2\n\n')
+            f.write('python run_Nbody_inc.py %s ${PBS_ARRAYID} %d 3 %d %s_%.0eorbits_id${PBS_ARRAYID}_shadow%d >& batch.output_${PBS_ARRAYID}'%(system,norbits,shadow,system,norbits,shadow))
+            f.close()
 
 ########### Main Routine ###########
 def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, gen_jobs, Np=3):
@@ -186,7 +206,7 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, gen_jobs, Np=3)
 
     # Save data to csv
     incl_header=True
-    data_file = "%s/%s_data.csv"%(dat_dir, system)
+    data_file = "%s/%s_data_final.csv"%(dat_dir, system)
     # if file already exists
     if os.path.isfile(data_file) == True:
         # check that each new drawn sample isn't a copy of a previous one
@@ -211,22 +231,24 @@ def main(system, dat_dir, jobs_dir, n_sims, norbits, shadow_sys, gen_jobs, Np=3)
     data.to_csv(data_file, mode="a", header=incl_header)
 
     # generate actual jobs
-    if gen_jobs:
+    if gen_jobs == "single":
         generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
+    elif gen_jobs == "array":
+        cluster = 'Cyberlamp'    #"Eric" or "Cyberlamp"
+        n_simultaneous = 50
+        generate_jobs_array(data, system, jobs_dir, norbits, shadow_sys, cluster, n_simultaneous)
 
 ####################################################
 if __name__ == '__main__':
-    #systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086"]
-    systems = ["KOI-2086"]
-    #systems = ["KOI-0523","KOI-0738","KOI-1270"]
-    #systems = ["EPIC-210897587-1","EPIC-210897587-2"]
-    #systems = ["K00041","K00085","K00271"]
-    #systems = ["LP-358-499", "Kepler-446"]
-    
+#    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314",
+#               "KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]
+    #4p systems = ["KOI-0152","KOI-0250"]
+    #systems = ["KOI-0085","KOI-0115","KOI-0156","KOI-0168","KOI-0314"]      #cyberlamp
+    systems = ["KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]  #Eric allocation
     jobs_dir = "jobs/"      #output directory for jobs
     dat_dir = "systems"     #output directory for storing _data.csv files
-    gen_jobs = 0            #if 0, just generate samples, but not physical jobs
-    n_sims = 2000           #number of sims created
+    gen_jobs = "array"      #"single" jobs, "array" jobs, or make no jobs
+    n_sims = 1500           #number of sims created
     shadow_sys = [0,1]      #if no shadow systems, set shadow_sys = [0]
     norbits = 1e9          #number of orbits of innermost planet
     #norbits = 5.8e9         #"EPIC-210897587-1/2 - 100 Myr"

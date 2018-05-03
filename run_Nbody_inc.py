@@ -108,7 +108,8 @@ if __name__ == '__main__':
     tmax = maxorbs*P1
 
     # save simulation archive
-    sim.initSimulationArchive('output/%s_inc_SA.bin'%name, interval=tmax/1000.)     #save checkpoints.
+    #sim.initSimulationArchive('output/%s_inc_SA.bin'%name, interval=tmax/1000.)     #save checkpoints.
+    sim.automateSimulationArchive('output/%s_inc_SA_final.bin'%name, interval=tmax/1000., deleteFile=True) # last flag removes file if it exists
 
     # simulate
     E0 = sim.calculate_energy()
@@ -117,9 +118,8 @@ if __name__ == '__main__':
     try:
         sim.integrate(tmax)         # will stop if collision occurs
     except:
-        pass
+        sim.simulationarchive_snapshot('output/%s_inc_SA_final.bin'%name)
     print("finished simulation")
-    sim.save('output/%s_inc_final.bin'%name)
     Ef = sim.calculate_energy()
     Eerr = abs((Ef-E0)/E0)
 
