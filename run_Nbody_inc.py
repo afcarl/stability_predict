@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     # save simulation archive
     #sim.initSimulationArchive('output/%s_inc_SA.bin'%name, interval=tmax/1000.)     #save checkpoints.
-    sim.automateSimulationArchive('output/%s_inc_SA_final.bin'%name, interval=tmax/1000., deleteFile=True) # last flag removes file if it exists
+    sim.automateSimulationArchive('output/%s_inc_SA_final.bin'%name, interval=tmax/1000., deletefile=True) # last flag removes file if it exists
 
     # simulate
     E0 = sim.calculate_energy()
