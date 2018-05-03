@@ -62,8 +62,7 @@ def make_sim(d, system, inc, Omega, Nplanets=3):
             min_MidTransitTime = np.min((data["T1"], data["T2"], data["T3"]))
             M = get_M(e, w, d["T%d"%i], P, min_MidTransitTime)
         elif system in danjh_sys:
-            #e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
-            e=0.3
+            e = np.sqrt(d["h%d"%i]**2 + d["k%d"%i]**2)      # sqrt(h^2 + k^2)
             w = np.arctan2(d["h%d"%i], d["k%d"%i])          # arctan2(h/k)
             epoch = 780
             M = get_M(e, w, d["T%d"%i], P, epoch)           # T = epoch = BJD-2,454,900
