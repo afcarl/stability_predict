@@ -5,10 +5,10 @@ import os.path
 import glob
 import numpy as np
 
-def submit_job(f, job_name):
-    os.system('mv %s %s'%(f, job_name))
+def submit_job(path, job_name):
+    os.system('mv %s %s'%(path, job_name))
     os.system('qsub %s'%job_name)
-    os.system('mv %s %s'%(job_name,f))
+    os.system('mv %s %s'%(job_name,path))
 
 def find_unsubmitted_jobs(jobs_dir):
     unsub_jobs = []
@@ -16,7 +16,7 @@ def find_unsubmitted_jobs(jobs_dir):
     jobs = glob.glob('%s/*'%jobs_dir)
     for j in jobs:
         basename = os.path.basename(j)
-        if os.path.isfile('output/%s_SA.bin'%basename) == False:
+        if os.path.isfile('output/%s_inc_SA_final.bin'%basename) == False:
             unsub_jobs.append(j)
         else:
             N_jobs_submitted += 1
@@ -26,15 +26,17 @@ def find_unsubmitted_jobs(jobs_dir):
 
 ###############################
 
-jobs_dir = 'jobs/'      # need final backslash!
+system = "KOI-0156"
+jobrange = [0,1000]        #[first, last] job to be submitted
+shadow = 0
 
-files = glob.glob('%s/*'%jobs_dir)
 #files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them
 
 Njobs_counter = 0
-for f in files:
-    job_name = f.split(jobs_dir)[1]
-    submit_job(f, job_name)     #submitting job for the first time
+for i in np.arange(jobrange[0],jobrange[1]):
+    job_name = '%s_1.0e+09orbits_id%d_shadow%d'%(system,i,shadow)
+    path = 'jobs/%s_final/%s'%(system,job_name)
+    submit_job(path, job_name)     #submitting job for the first time
     Njobs_counter += 1
 
-print('submitted %d jobs'%Njobs_counter)
+print('submitted %d jobs over jobrange %d-%d'%(Njobs_counter,jobrange[0],jobrange[1]))
