@@ -53,7 +53,7 @@ def draw_e(Ms, P1, P2, P3, m1, m2, m3):
     return e1, e2, e3
 
 ########### Generate Jobs Singles ###########
-def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci-b', Np=3):
+def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci-b_eric', Np=3):
     for shadow in shadow_sys:
         for sample in data.iterrows():
             id_ = sample[0]             #id number of sample
@@ -70,9 +70,9 @@ def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci
                     f.write('source /mnt/raid-cita/dtamayo/stability/bin/activate \n')
                     f.write('python run_Nbody.py %s %d %d %d %d %s >& job_output/%s\n'%(system,id_,norbits,Np,shadow,job_name,job_name))
                     f.close()
-            elif cluster_type == 'aci-b':
+            else:
                 with open(sh_script_name, 'w') as f:
-                    f_head = open('utils/job_header_aci-b','r')
+                    f_head = open('utils/job_header_%s'%cluster_type,'r')
                     f.write(f_head.read())
                     f_head.close()
                     #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
@@ -263,5 +263,6 @@ if __name__ == '__main__':
     # use existing samples and create new jobs
     for system in systems:
         data = pd.read_csv("systems/%s_data_final.csv"%system)[0:n_sims]
-        generate_jobs(data, system, jobs_dir, norbits, shadow_sys)
+        generate_jobs(data[0:1000], system, jobs_dir, norbits, shadow_sys, 'aci-b_cyberlamp')   #make 1000 to send to cyberlamp
+        generate_jobs(data[1000:n_sims], system, jobs_dir, norbits, shadow_sys, 'aci-b_eric')   #make 500 to send to Eric
         print("Generated jobs for %d simulations for %s"%(n_sims*len(shadow_sys),system))
