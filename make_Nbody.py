@@ -75,7 +75,6 @@ def generate_jobs(data, system, jobs_dir, norbits, shadow_sys, cluster_type='aci
                     f_head = open('utils/job_header_%s'%cluster_type,'r')
                     f.write(f_head.read())
                     f_head.close()
-                    #f.write('python run_Nbody.py %s %d %d %d %d %s >& batch.output\n'%(system,id_,norbits,Np,shadow,job_name))
                     f.write('python run_Nbody_inc.py %s %d %d %d %d %s >& job_output/%s\n'%(system,id_,norbits,Np,shadow,job_name,job_name))
                     f.close()
 
@@ -247,10 +246,10 @@ if __name__ == '__main__':
     #systems = ["KOI-0085","KOI-0115","KOI-0156","KOI-0168","KOI-0314"]      #cyberlamp
     #systems = ["KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431", "EPIC-210897587-2"]  #Eric allocation
 
-    systems = ["KOI-0168"]
+    systems = ["KOI-0314"]
     jobs_dir = "jobs/"      #top output directory for jobs, need final "/"!
     dat_dir = "systems"     #output directory for storing _data.csv files
-    gen_jobs = "array"      #"single" jobs, "array" jobs, or make no jobs
+    #gen_jobs = "array"      #"single" jobs, "array" jobs, or make no jobs
     n_sims = 1500           #number of sims created
     shadow_sys = [0,1]      #if no shadow systems, set shadow_sys = [0]
     norbits = 1e9          #number of orbits of innermost planet
@@ -269,5 +268,6 @@ if __name__ == '__main__':
             os.makedirs(jobs_directory)
         data = pd.read_csv("systems/%s_data_final.csv"%system)[0:n_sims]
         generate_jobs(data[0:1000], system, jobs_directory, norbits, shadow_sys, 'aci-b_cyberlamp')   #make 1000 to send to cyberlamp
-        generate_jobs(data[1000:n_sims], system, jobs_directory, norbits, shadow_sys, 'aci-b_eric')   #make 500 to send to Eric
+        #generate_jobs(data[1000:n_sims], system, jobs_directory, norbits, shadow_sys, 'aci-b_eric')   #make 500 to send to Eric
+        generate_jobs(data[1000:n_sims], system, jobs_directory, norbits, shadow_sys, 'aci-b_cyberlamp_default')   #make 500 to send to cyberlamp default, INSTEAD of Eric
         print("Generated jobs for %d simulations for %s"%(n_sims*len(shadow_sys),system))
