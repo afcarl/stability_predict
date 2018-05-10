@@ -1,9 +1,9 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1
 #PBS -l walltime=24:00:00
-#PBS -l pmem=1gb                ## Requests 1 gigabytes of memory per process
-#PBS -A cyberlamp               ## Specifies the allocation. Use –A open/cyberlamp -l qos=cl_open/ebf11_a_g_sc_default
-#PBS -j oe                      ## Requests that regular output and terminal output go to the same file
+#PBS -l pmem=1gb
+#PBS -A cyberlamp
+#PBS -j oe         
 cd $PBS_O_WORKDIR
 export PATH="/storage/work/ajs725/conda/install/bin:$PATH"
 source activate stability3.5.2
