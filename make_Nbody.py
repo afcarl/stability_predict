@@ -243,6 +243,7 @@ if __name__ == '__main__':
 #    systems = ["KOI-0085","KOI-0115","KOI-0152","KOI-0156","KOI-0168","KOI-0250","KOI-0314",
 #               "KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431"]
     #4p systems = ["KOI-0152","KOI-0250"]
+    
     #systems = ["KOI-0085","KOI-0115","KOI-0156","KOI-0168","KOI-0314"]      #cyberlamp
     #systems = ["KOI-1576","KOI-2086","LP-358-499", "Kepler-446", "Kepler-431", "EPIC-210897587-2"]  #Eric allocation
 

@@ -34,7 +34,7 @@ def get_features(system, dir_SA):
         df = pd.DataFrame(columns=mf)
         for index, dir_sim in enumerate(SAs):
             try:
-                basename = os.path.basename(dir_sim.split('_SA.bin')[0])
+                basename = os.path.basename(dir_sim.split('_SA_inc.bin')[0])
                 dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
                 P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
                 sim_time = rebound.SimulationArchive(dir_final)[-1].t
@@ -51,11 +51,13 @@ def get_features(system, dir_SA):
 if __name__ == "__main__":
     #    systems = ["Kepler-431","Kepler-446","KOI-0085","KOI-0115","KOI-0156",
     #               "KOI-0168","KOI-0250","KOI-0314","KOI-1576","KOI-2086","LP-358-499"]
-    systems = ["Ari_Fake_10_0.1_r1"]
+    #systems = ["Ari_Fake_10_0.1_r1"]
+    systems = ["Kepler-431"]
     model = pickle.load(open("models/final_Naireen2018.pkl", "rb"))
     
     for system in systems:
-        dir_SA = "/storage/work/cjg66/ML-Stability/output/%s"%system   #ACI-b
+        #dir_SA = "/storage/work/cjg66/ML-Stability/output/%s"%system   #ACI-b
+        dir_SA = 'simulation_archives/%s_inc'%system
         
         df = get_features(system, dir_SA)
         X = xgb.DMatrix(df[model_features])
