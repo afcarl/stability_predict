@@ -25,7 +25,7 @@ def get_features(system, dir_SA):
         df = pd.read_csv('systems/%s_features.csv'%system)
         print('***Loaded predictions for system %s.'%system)
     except:
-        SAs = glob.glob("%s/*_SA.bin"%dir_SA)
+        SAs = glob.glob("%s/*_SA_inc.bin"%dir_SA)
         
         # make data frame
         print('***Couldnt retrieve predictions for system %s, generating from scratch***'%system)
