@@ -33,15 +33,15 @@ def check_if_interrupted_job(job_output):
 
 ###############################
 
-system = "KOI-0085"
-jobrange = [0,1000]        #[first, last] job to be submitted
-shadow = 1
+system = "KOI-0168"
+jobrange = [1000,1500]        #[first, last] job to be submitted
+shadow = 0
 
 #files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them
 
 Njobs_counter = 0
 
-# fixing interrupted jobs of KOI-0085
+# fixing interrupted jobs
 for i in np.arange(jobrange[0],jobrange[1]):
     job_name = '%s_1.0e+09orbits_id%d_shadow%d'%(system,i,shadow)
     job_output = 'job_output/%s'%job_name
