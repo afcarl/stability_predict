@@ -33,16 +33,18 @@ def get_features(system, dir_SA):
         mf += ['name','id','Stable','instability_time','Rel_Eerr','P1','sim_time']
         df = pd.DataFrame(columns=mf)
         for index, dir_sim in enumerate(SAs):
-            basename = os.path.basename(dir_sim.split('_SA_inc.bin')[0])
-            dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
-            P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
-            sim_time = rebound.SimulationArchive(dir_final)[-1].t
-            features = gen.system(dir_sim, sim_time, P1, index)
-            features['name'] = basename
-            features['id'] = basename.split('_')[-1]
-            df = pd.concat([df, features[mf]])
-#            except:
-#                pass
+            try:
+                basename = os.path.basename(dir_sim.split('_SA_inc.bin')[0])
+                #dir_final = dir_sim.split('_SA.bin')[0] + '_final.bin'
+                P1 = rebound.SimulationArchive(dir_sim)[0].particles[1].P
+                #sim_time = rebound.SimulationArchive(dir_final)[-1].t
+                sim_time = rebound.SimulationArchive(dir_sim)[-1].t
+                features = gen.system(dir_sim, sim_time, P1, index)
+                features['name'] = basename
+                features['id'] = basename.split('_')[-1]
+                df = pd.concat([df, features[mf]])
+            except:
+                pass
         df.to_csv('systems/%s_features.csv'%system)
     return df
 

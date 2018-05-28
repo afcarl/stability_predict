@@ -24,19 +24,38 @@ def find_unsubmitted_jobs(jobs_dir):
     print('found %d jobs'%len(unsub_jobs))
     return unsub_jobs
 
+def check_if_interrupted_job(job_output):
+    file = open(job_output, 'r').read()
+    if "finished simulation" in file:
+        return False
+    else:
+        return True
+
 ###############################
 
-system = "KOI-0156"
+system = "KOI-0085"
 jobrange = [0,1000]        #[first, last] job to be submitted
-shadow = 0
+shadow = 1
 
 #files = find_unsubmitted_jobs(jobs_dir)     #find unsubmitted jobs and submit them
 
 Njobs_counter = 0
+
+# fixing interrupted jobs of KOI-0085
 for i in np.arange(jobrange[0],jobrange[1]):
     job_name = '%s_1.0e+09orbits_id%d_shadow%d'%(system,i,shadow)
-    path = 'jobs/%s_final/%s'%(system,job_name)
-    submit_job(path, job_name)     #submitting job for the first time
-    Njobs_counter += 1
+    job_output = 'job_output/%s'%job_name
+    interrupted = check_if_interrupted_job(job_output)
+    if interrupted:
+        print(job_name)
+        path = 'jobs/%s_final/%s'%(system,job_name)
+        submit_job(path, job_name)     #submitting job for the first time
+        Njobs_counter += 1
+
+#for i in np.arange(jobrange[0],jobrange[1]):
+#    job_name = '%s_1.0e+09orbits_id%d_shadow%d'%(system,i,shadow)
+#    path = 'jobs/%s_final/%s'%(system,job_name)
+#    submit_job(path, job_name)     #submitting job for the first time
+#    Njobs_counter += 1
 
 print('submitted %d jobs over jobrange %d-%d'%(Njobs_counter,jobrange[0],jobrange[1]))
